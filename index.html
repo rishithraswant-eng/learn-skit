@@ -4,10 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>learn-skit — Revise what the exam actually asks</title>
-<meta name="description" content="Flashcards, predicted MCQs and short notes for EVS, Quantitative and Qualitative Skills.">
+<meta name="description" content="Free FAT revision for EVS and Quantitative & Qualitative Skills. Flashcards, predicted MCQs, and 6-minute cheat sheets.">
 <meta name="theme-color" content="#F6F5FD">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="robots" content="index, follow" id="meta-robots">
+<meta property="og:type" content="website">
+<meta property="og:title" content="learn-skit — FAT revision for EVS, Quant &amp; Qual">
+<meta property="og:description" content="Revise what the exam actually asks. Flashcards, predicted MCQs, and six-minute cheat sheets.">
+<meta property="og:image" content="icons/app-512.png">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=IBM+Plex+Sans:wght@500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
@@ -16,25 +21,54 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/app-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3c7 0 13 5 13 12s-5 14-13 14S3 23 3 16 9 3 16 3z' fill='%23F5B69E'/%3E%3Ccircle cx='12' cy='12' r='5' fill='%238DB9F0'/%3E%3C/svg%3E">
+<script>
+(function(){
+  try {
+    var stored = localStorage.getItem('learn-skit-theme');
+    var isDark = stored ? stored === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+    }
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+    var metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', isDark ? '#1C1D20' : '#F6F5FD');
+  } catch(e){}
+})();
+</script>
 </head>
 <body>
 <div class="mesh" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i></div>
 <a class="skip" href="#view">Skip to content</a>
 
 <header class="top">
-  <a href="#/" class="logo clay" data-tint="lav" aria-label="learn-skit home">
-    <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M16 3c7 0 13 5 13 12s-5 14-13 14S3 23 3 16 9 3 16 3z" fill="#F5B69E"/><circle cx="12" cy="12" r="5" fill="#8DB9F0"/></svg>
-    <span>learn-skit</span>
-  </a>
-  <nav class="nav glass" aria-label="Primary">
-    <a href="#/s/evs" data-nav="evs"><small>Subject</small>EVS</a>
-    <a href="#/s/skills-1" data-nav="skills-1"><small>Subject</small>Quant &amp; Qual</a>
-  </nav>
-  <button class="cta clay tools-toggle" data-tint="white" type="button" id="study-tools" aria-label="Open study tools"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg></button>
-  <button class="cta clay" data-tint="white" id="signin" type="button">
-    <svg class="g" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
-    <span>Sign in</span>
-  </button>
+  <div class="top-inner">
+    <a href="#/" class="logo clay" data-tint="lav" aria-label="learn-skit home">
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M16 3c7 0 13 5 13 12s-5 14-13 14S3 23 3 16 9 3 16 3z" fill="var(--logo-mark-peach, #F5B69E)"/><circle cx="12" cy="12" r="5" fill="var(--logo-mark-blue, #8DB9F0)"/></svg>
+      <span>learn-skit</span>
+    </a>
+    <nav class="nav glass" aria-label="Primary" id="primary-nav">
+      <a href="#/s/evs" data-nav="evs"><small>Subject</small>EVS</a>
+      <a href="#/s/skills-1" data-nav="skills-1"><small>Subject</small>Quant &amp; Qual</a>
+    </nav>
+    <div class="header-actions">
+      <button role="switch" aria-checked="false" aria-label="Dark mode" class="theme-switch" id="theme-toggle" type="button">
+        <span class="theme-switch-thumb">
+          <svg class="thumb-icon sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C1D20" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg class="thumb-icon moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C1D20" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </span>
+      </button>
+      <button class="cta clay tools-toggle" data-tint="white" type="button" id="study-tools" aria-label="Open study tools"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg></button>
+      <button class="cta clay" data-tint="white" id="signin" type="button">
+        <svg class="g" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+        <span>Sign in</span>
+      </button>
+    </div>
+  </div>
 </header>
 
 <main id="view" tabindex="-1"></main>
@@ -48,6 +82,7 @@
 <script src="js/access.js"></script>
 <script src="js/study-core.js"></script>
 <script src="js/workspace.js"></script>
+<script src="js/theme.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

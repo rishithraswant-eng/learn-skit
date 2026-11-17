@@ -37,7 +37,7 @@ const allPct = () => {
   SUBJECTS.forEach(s => s.modules.filter(ready).forEach(m => { t += m.cards.length + m.mcq.length; d += modPct(m) * (m.cards.length + m.mcq.length) / 100; }));
   return t ? Math.round(d / t * 100) : 0;
 };
-const tintVars = s => ({ peach: '--accent:#F5B69E;--accent-ink:#8A3B1E;--accent-bg:var(--g-clay-peach)', powder: '--accent:#8DB9F0;--accent-ink:#1F4E92;--accent-bg:var(--g-clay-blue)', lav: '--accent:#C9C3EE;--accent-ink:#5B4FA3;--accent-bg:linear-gradient(145deg,#E9E8F8,#C9C3EE)' }[s.tint]);
+const tintVars = s => ({ peach: '--accent:var(--peach);--accent-ink:var(--peach-deep);--accent-bg:var(--g-clay-peach)', powder: '--accent:var(--blue);--accent-ink:var(--blue-deep);--accent-bg:var(--g-clay-blue)', lav: '--accent:var(--lav-deep);--accent-ink:var(--lav-deep);--accent-bg:var(--g-clay-lav)' }[s.tint]);
 const ring = (p, inner = `<b>${p}%</b>`) => `<div class="ring" style="--p:${p}">${inner}</div>`;
 
 /* ---------- toast ---------- */
@@ -72,17 +72,17 @@ const TILES = {
 const boxStyle = k => { const [x, y, w, h] = TILES[k].box; return `--x:${x / 11.5}%;--y:${y / 7.8}%;--w:${w / 11.5}%;--h:${h / 7.8}%`; };
 const heroSvg = () => `<svg class="art-svg" viewBox="0 0 1150 780" aria-hidden="true">
 <defs>
-  <linearGradient id="gT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF9F6"/><stop offset=".6" stop-color="#FCE6DC"/><stop offset="1" stop-color="#F8CCBB"/></linearGradient>
-  <linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C6DCF8"/><stop offset=".55" stop-color="#8DB9F0"/><stop offset="1" stop-color="#769BCD"/></linearGradient>
-  <linearGradient id="gB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FCFCFE"/><stop offset=".5" stop-color="#E9E8F8"/><stop offset="1" stop-color="#C6DCF8"/></linearGradient>
-  <linearGradient id="gP" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FAD3C4"/><stop offset=".55" stop-color="#F5B69E"/><stop offset="1" stop-color="#EBA38A"/></linearGradient>
+  <linearGradient id="gT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--tile-t-0)"/><stop offset=".6" stop-color="var(--tile-t-1)"/><stop offset="1" stop-color="var(--tile-t-2)"/></linearGradient>
+  <linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--tile-a-0)"/><stop offset=".55" stop-color="var(--tile-a-1)"/><stop offset="1" stop-color="var(--tile-a-2)"/></linearGradient>
+  <linearGradient id="gB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--tile-b-0)"/><stop offset=".5" stop-color="var(--tile-b-1)"/><stop offset="1" stop-color="var(--tile-b-2)"/></linearGradient>
+  <linearGradient id="gP" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--tile-p-0)"/><stop offset=".55" stop-color="var(--tile-p-1)"/><stop offset="1" stop-color="var(--tile-p-2)"/></linearGradient>
   <filter id="clay" x="-4%" y="-4%" width="108%" height="108%" color-interpolation-filters="sRGB">
     <feComponentTransfer in="SourceAlpha"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
     <feGaussianBlur stdDeviation="12"/><feOffset dx="-9" dy="-12" result="o1"/>
-    <feFlood flood-color="#4B5CA8" flood-opacity=".26"/><feComposite in2="o1" operator="in"/><feComposite in2="SourceAlpha" operator="in" result="shade"/>
+    <feFlood flood-color="var(--clay-flood-shade)" flood-opacity=".26"/><feComposite in2="o1" operator="in"/><feComposite in2="SourceAlpha" operator="in" result="shade"/>
     <feComponentTransfer in="SourceAlpha"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
     <feGaussianBlur stdDeviation="8"/><feOffset dx="7" dy="9" result="o2"/>
-    <feFlood flood-color="#FFFFFF" flood-opacity=".85"/><feComposite in2="o2" operator="in"/><feComposite in2="SourceAlpha" operator="in" result="light"/>
+    <feFlood flood-color="var(--clay-flood-light)" flood-opacity=".85"/><feComposite in2="o2" operator="in"/><feComposite in2="SourceAlpha" operator="in" result="light"/>
     <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shade"/><feMergeNode in="light"/></feMerge>
   </filter>
 </defs>
@@ -335,24 +335,32 @@ function cardSession(m,s,root) {
     const [prompt, answer, note] = deck[index];
     const id = cid(m,index);
     position(m,'cards',id);
+    const left = index > 0 ? deck[index - 1] : null;
+    const right = index < deck.length - 1 ? deck[index + 1] : null;
     root.innerHTML = `<div class="session">
       <div class="sess-top"><span class="num" role="status">Card ${index + 1} of ${deck.length}</span>
         <div class="bar" aria-hidden="true"><i style="width:${(index + 1) / deck.length * 100}%"></i></div></div>
-      <article class="panel reading-card" tabindex="-1" aria-labelledby="card-prompt">
-        <h2 id="card-prompt">${esc(prompt)}</h2>
-        <p class="reading-answer">${esc(answer)}</p>
-        ${note ? `<p class="muted reading-note">${esc(note)}</p>` : ''}
-      </article>
+      <div class="carousel-viewport" aria-label="Flashcard carousel">
+        ${left ? `<div class="carousel-peek-card left" id="card-peek-prev" role="button" tabindex="0" aria-label="Previous card preview"><div class="peek-gradient"></div><h2>${esc(left[0])}</h2><p>${esc(left[1])}</p></div>` : '<div class="carousel-placeholder" aria-hidden="true"></div>'}
+        <article class="panel reading-card carousel-active-card" tabindex="-1" aria-labelledby="card-prompt" aria-live="polite">
+          <h2 id="card-prompt">${esc(prompt)}</h2>
+          <p class="reading-answer">${esc(answer)}</p>
+          ${note ? `<p class="muted reading-note">${esc(note)}</p>` : ''}
+        </article>
+        ${right ? `<div class="carousel-peek-card right" id="card-peek-next" role="button" tabindex="0" aria-label="Next card preview"><div class="peek-gradient"></div><h2>${esc(right[0])}</h2><p>${esc(right[1])}</p></div>` : '<div class="carousel-placeholder" aria-hidden="true"></div>'}
+      </div>
       <div class="row reading-nav">
-        <button type="button" class="btn clay" id="card-prev" ${index === 0 ? 'disabled' : ''}>Previous card</button>
+        <button type="button" class="btn clay" id="card-prev" ${index === 0 ? 'disabled' : ''} aria-label="Previous card">Previous card</button>
         ${index === deck.length - 1 ? `<a class="btn ink" href="#/s/${s.slug}/${m.id}/practice">Practise this module</a>` : ''}
-        <button type="button" class="btn ink" id="card-next" ${index === deck.length - 1 ? 'disabled' : ''}>Next card ${I.arrow}</button>
+        <button type="button" class="btn ink" id="card-next" ${index === deck.length - 1 ? 'disabled' : ''} aria-label="Next card">Next card ${I.arrow}</button>
       </div>
       ${StudyWorkspace.controls(id,'card',m.id,s.slug)}
     </div>`;
     StudyWorkspace.bindControls(root);
     $('#card-prev',root).onclick = () => move(-1);
     $('#card-next',root).onclick = () => move(1);
+    if ($('#card-peek-prev',root)) $('#card-peek-prev',root).onclick = () => move(-1);
+    if ($('#card-peek-next',root)) $('#card-peek-next',root).onclick = () => move(1);
   }
   onKey = event => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -374,7 +382,7 @@ function mcqSession(m, s, root) {
     const i=order[k],q = m.mcq[i],savedAnswer=run.answers[qid(m,i)];let answered = false;const started=Date.now();
     position(m, 'practice', qid(m, i));
     root.innerHTML = `<div class="session">
-      <div class="sess-top"><span class="num">${k + 1}/${order.length}</span><div class="bar"><i style="width:${k / order.length * 100}%"></i></div><span class="chip num">${score} correct</span></div>
+      <div class="sess-top"><span class="num">${k + 1}/${order.length}</span><div class="bar"><i style="width:${k / order.length * 100}%"></i></div><span class="chip num">${score > 0 ? `<b class="score-num">${score}</b>` : '0'} correct</span></div>
       <div class="panel"><p class="qmeta num">Q${k + 1} · ${m.id} · ${{ E: 'Easy', M: 'Medium', H: 'Hard' }[q[7]]}</p>
         ${m.questionMeta?.[i]?.group?`<details class="question-group" open><summary>Shared passage or scenario</summary><p>${esc(m.questionMeta[i].group)}</p></details>`:''}
         ${q[8] ? '<p class="chip">Source conflict · confirm with your faculty</p>' : ''}
@@ -403,7 +411,7 @@ function mcqSession(m, s, root) {
     $('#hint').addEventListener('click', () => add('hint', 'Hint', q[3]));
     $('#cut').addEventListener('click', () => add('cut', 'Shortcut', q[5]));
     $('#next').addEventListener('click', () => { k++; draw(); });
-    const target=m.questionMeta?.[i]?.expected_time_sec||q[9]||60;const tick=()=>{const label=$('#practice-pace',root);if(label)label.textContent=Math.floor((Date.now()-started)/1000)+' s · suggested pace '+target+' s';};tick();paceTimer=setInterval(tick,1000);if(savedAnswer)pick(savedAnswer.selected,true);
+    const target=m.questionMeta?.[i]?.expected_time_sec||q[9]||60;const tick=()=>{const label=$('#practice-pace',root);if(label){const elapsed=Math.floor((Date.now()-started)/1000);label.textContent=elapsed+' s · suggested pace '+target+' s';label.classList.toggle('over-pace',elapsed>target);}};tick();paceTimer=setInterval(tick,1000);if(savedAnswer)pick(savedAnswer.selected,true);
     onKey = e => {
       const n = '1234'.indexOf(e.key) + 1 || 'abcd'.indexOf(e.key.toLowerCase()) + 1;
       if (n && !answered) pick(n - 1);
@@ -434,11 +442,13 @@ function notes(m, s, root) {
     };
     const key='notes:'+m.id,saved=S.d.position[key]||{};
     root.innerHTML=`<div class="notes-layout"><nav class="note-toc glass" aria-label="Note sections">${sections.map(([id,title])=>`<a href="#note-${id}" data-note-section="${id}">${title}</a>`).join('')}<p class="muted">${n.est_minutes||6} min read</p></nav><div class="note"><p class="chip">AI-checked study aid · faculty review remains separate</p>${sections.map(([id,title])=>`<section class="panel" id="note-${id}"><h2>${title}</h2>${content(id,n[id])}</section>`).join('')}<div class="row"><button class="btn ink" type="button" id="note-done">${saved.done?'Marked as read':'Mark as read'}</button><a class="btn clay" href="#/s/${s.slug}/${m.id}/practice">Practise this module</a></div></div></div>`;
-    $$('[data-note-section]',root).forEach(a=>a.onclick=e=>{e.preventDefault();$('#note-'+a.dataset.noteSection,root).scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});});
-    $$('[data-card-preview]',root).forEach(b=>b.onclick=()=>{const i=m.cardIds.indexOf(b.dataset.cardPreview);if(i<0)return;const dialog=document.createElement('dialog');dialog.className='study-dialog';dialog.innerHTML=`<h2>${esc(m.cards[i][0])}</h2><p>${esc(m.cards[i][1])}</p><button class="btn ink" type="button">Close</button>`;document.body.append(dialog);$('button',dialog).onclick=()=>dialog.close();dialog.onclose=()=>dialog.remove();dialog.showModal();});
     let pending,active=saved.section||sections[0][0];
-    const persist=()=>{const element=$('#note-'+active,root);if(!element)return;const old=S.d.position[key]||{};StudyWorkspace.save(key,{...old,section:active,ratio:Math.max(0,Math.min(1,-element.getBoundingClientRect().top/Math.max(1,element.offsetHeight))),updated_at:Date.now()});};
-    const onScroll=()=>{for(const [id] of sections){if($('#note-'+id,root).getBoundingClientRect().top<180)active=id;}clearTimeout(pending);pending=setTimeout(persist,800);};
+    const updateToc=()=>{$$('[data-note-section]',root).forEach(a=>a.classList.toggle('active',a.dataset.noteSection===active));};
+    updateToc();
+    $$('[data-note-section]',root).forEach(a=>a.onclick=e=>{e.preventDefault();active=a.dataset.noteSection;updateToc();$('#note-'+a.dataset.noteSection,root).scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});});
+    $$('[data-card-preview]',root).forEach(b=>b.onclick=()=>{const i=m.cardIds.indexOf(b.dataset.cardPreview);if(i<0)return;const dialog=document.createElement('dialog');dialog.className='study-dialog';dialog.innerHTML=`<h2>${esc(m.cards[i][0])}</h2><p>${esc(m.cards[i][1])}</p><button class="btn ink" type="button">Close</button>`;document.body.append(dialog);$('button',dialog).onclick=()=>dialog.close();dialog.onclose=()=>dialog.remove();dialog.showModal();});
+    const persist=()=>{updateToc();const element=$('#note-'+active,root);if(!element)return;const old=S.d.position[key]||{};StudyWorkspace.save(key,{...old,section:active,ratio:Math.max(0,Math.min(1,-element.getBoundingClientRect().top/Math.max(1,element.offsetHeight))),updated_at:Date.now()});};
+    const onScroll=()=>{for(const [id] of sections){if($('#note-'+id,root).getBoundingClientRect().top<180)active=id;}updateToc();clearTimeout(pending);pending=setTimeout(persist,800);};
     addEventListener('scroll',onScroll,{passive:true});
     $('#note-done').onclick=()=>{StudyWorkspace.save(key,{...(S.d.position[key]||{}),done:true,done_at:Date.now()});$('#note-done').textContent='Marked as read';LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'note_read',p_details:{module:m.id}});};
     cleanupView=()=>{persist();clearTimeout(pending);removeEventListener('scroll',onScroll);};
@@ -461,37 +471,843 @@ function notFound() {
   view.innerHTML = `<div class="wrap view-in"><div class="panel done" style="margin-top:40px"><h2>Nothing here yet</h2><p class="muted">That page doesn’t exist, or its content pack is still in production.</p><div class="row"><a class="btn ink" href="#/">Back home ${I.arrow}</a></div></div></div>`;
 }
 
-/* ---------- router ---------- */
-function setNav(k) { $$('.nav a').forEach(a => a.dataset.nav === k ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')); }
-function route() {
-  cleanupView();cleanupView=()=>{};StudyWorkspace.stop();
-  const h = location.hash || '#/'; onKey = null; setNav(null);
-  const canonical = h.replace(/^#\/s\/(?:quantitative-1|qualitative-1)(?=\/|$)/, '#/s/skills-1').replace(/^#\/(predicted|bonus)\/([\w-]+)$/, (_,kind,slug) => `#/s/${['quantitative-1','qualitative-1'].includes(slug) ? 'skills-1' : slug}/full-test`).replace(/\/s\/([\w-]+)\/(?:predicted|bonus)$/, '/s/$1/full-test');
-  if (canonical !== h) { location.replace(canonical); return; }
-  if(accessStatus==='ready'&&LearnSkit.user&&lastAnalyticsHash!==h){lastAnalyticsHash=h;let referrer='direct';try{referrer=document.referrer?new URL(document.referrer).hostname:'direct';}catch{}LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'page_view',p_details:{path:h.split('?')[0],device_class:innerWidth<860?'mobile':'desktop',referrer}});}
-  if(/^#\/(privacy|terms|about|methodology)$/.test(h)){StudyWorkspace.render(view,h.slice(2));return;}
-  if (accessStatus !== 'ready') {
-    const error = accessStatus === 'error', loading = accessStatus === 'loading', setup = accessStatus === 'unconfigured';
-    view.innerHTML = `<section class="auth-shell"><div class="auth-panel glass"><p class="eyebrow">learn-skit · FAT revision</p><h1>${loading ? 'Opening your study space…' : error ? 'Study material could not load' : 'Sign in to start revising'}</h1><p class="auth-description">${loading ? 'Checking your session.' : error ? 'Check your connection and try again.' : setup ? 'Google sign-in is being configured. Study material will be available once setup is complete.' : 'Use any Google account to access cards, MCQs and your saved progress.'}</p>${!loading ? `<button class="btn ink" type="button" id="gate-action" ${setup ? 'disabled' : ''}>${error ? 'Try again' : 'Continue with Google'}</button>` : ''}</div></section>`;
-    $('.auth-panel').insertAdjacentHTML('beforeend','<p class="auth-links"><a href="#/privacy">Privacy</a><span>·</span><a href="#/terms">Terms</a></p>');
-    $('#gate-action')?.addEventListener('click', () => error ? LearnSkit.retry() : LearnSkit.signIn());
+function updateHeader() {
+  const signedIn = !!(accessStatus === 'ready' && LearnSkit.user);
+  const nav = $('#primary-nav') || $('.nav');
+  const tools = $('#study-tools');
+  const signin = $('#signin');
+  if (nav) nav.style.display = signedIn ? '' : 'none';
+  if (tools) tools.style.display = signedIn ? '' : 'none';
+  if (signin) {
+    const label = $('span', signin);
+    if (label) label.textContent = signedIn ? 'Sign out' : 'Sign in';
+  }
+}
+
+const googleBtn = (label = 'Continue with Google', extraClass = '') => `
+  <button type="button" class="btn ink landing-cta-btn ${extraClass}" data-action="google-signin">
+    <svg class="g" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+    <span>${label}</span>
+  </button>
+`;
+
+const heroAtmosphereSvg = () => `
+<div class="hero-scene-wrap" aria-hidden="true">
+<svg class="hero-atmosphere-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" overflow="hidden" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- SVG feTurbulence subtle grain overlay -->
+    <filter id="hero-grain" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise"/>
+      <feColorMatrix type="matrix" values="0.11 0 0 0 0.11   0 0.14 0 0 0.14   0 0 0.25 0 0.25   0 0 0 0.045 0"/>
+    </filter>
+
+    <!-- Depth blurs for distant background layers -->
+    <filter id="blur-mid" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.2"/>
+    </filter>
+
+    <!-- Soft drop shadow for foreground elements -->
+    <filter id="hero-shadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="3" dy="8" stdDeviation="8" flood-color="var(--illustration-stroke)" flood-opacity="0.10"/>
+    </filter>
+
+    <!-- Reusable subtle star sparkle -->
+    <g id="star-sparkle">
+      <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="var(--hero-sparkle, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+    </g>
+  </defs>
+
+  <!-- 1. The 5 Atmospheric stacked arcs above Earth horizon -->
+  <!-- Layer 5: Exosphere Arc (600+ km) -->
+  <path d="M -500 710 C 0 450, 400 380, 720 380 C 1040 380, 1440 450, 1940 710 L 1940 950 L -500 950 Z"
+        fill="var(--arc-5)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 690 C 0 454, 400 383, 720 383 C 1040 383, 1440 454, 1840 690"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.6)"/>
+
+  <!-- Layer 4: Thermosphere Arc (85-600 km) -->
+  <path d="M -500 765 C 0 530, 400 455, 720 455 C 1040 455, 1440 530, 1940 765 L 1940 950 L -500 950 Z"
+        fill="var(--arc-4)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 748 C 0 534, 400 458, 720 458 C 1040 458, 1440 534, 1840 748"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.55)"/>
+
+  <!-- Layer 3: Mesosphere Arc (50-85 km) -->
+  <path d="M -500 820 C 0 615, 400 535, 720 535 C 1040 535, 1440 615, 1940 820 L 1940 950 L -500 950 Z"
+        fill="var(--arc-3)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 804 C 0 618, 400 538, 720 538 C 1040 538, 1440 618, 1840 804"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.55)"/>
+
+  <!-- Layer 2: Stratosphere Arc (12-50 km, Ozone Layer) -->
+  <path d="M -500 870 C 0 700, 400 620, 720 620 C 1040 620, 1440 700, 1940 870 L 1940 950 L -500 950 Z"
+        fill="var(--arc-2)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 855 C 0 703, 400 623, 720 623 C 1040 623, 1440 703, 1840 855"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.6)"/>
+
+  <!-- Layer 1: Troposphere Arc (0-12 km, Weather & Life) -->
+  <path d="M -500 920 C 0 790, 400 705, 720 705 C 1040 705, 1440 790, 1940 920 L 1940 950 L -500 950 Z"
+        fill="var(--arc-1)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 906 C 0 793, 400 708, 720 708 C 1040 708, 1440 793, 1840 906"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.65)"/>
+
+  <!-- Earth Horizon Surface -->
+  <path d="M -500 965 C 0 865, 400 782, 720 782 C 1040 782, 1440 865, 1940 965 L 1940 1020 L -500 1020 Z"
+        fill="var(--arc-earth)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 952 C 0 868, 400 785, 720 785 C 1040 785, 1440 868, 1840 952"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.7)"/>
+
+  <!-- Earth Continent landforms -->
+  <g class="earth-continents">
+    <path d="M 320 860 C 370 820, 440 815, 490 835 C 520 848, 550 840, 580 820 C 600 810, 640 815, 650 835 C 640 870, 560 885, 480 890 C 380 895, 330 880, 320 860 Z"
+          fill="var(--arc-land)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+    <path d="M 850 825 C 890 810, 950 815, 1000 840 C 1040 860, 1090 855, 1130 875 C 1090 905, 990 910, 920 890 C 860 870, 840 845, 850 825 Z"
+          fill="var(--arc-land)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+    <path d="M 410 840 L 425 828 L 440 842" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 438 842 L 450 832 L 464 845" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Atmospheric layer metadata tags -->
+  <g class="desktop-only-obj" fill="var(--illustration-stroke)" opacity="0.45" font-family="'IBM Plex Sans', sans-serif" font-size="9" letter-spacing="1.5px">
+    <text x="210" y="440">EXOSPHERE · 600+ KM</text>
+    <text x="1190" y="515">THERMOSPHERE · 85-600 KM</text>
+    <text x="180" y="590">MESOSPHERE · 50-85 KM</text>
+    <text x="1210" y="675">STRATOSPHERE · 12-50 KM</text>
+    <text x="490" y="750">TROPOSPHERE · 0-12 KM</text>
+  </g>
+
+  <!-- Mascot: Friendly round astronaut learner peeking over the troposphere/earth arc -->
+  <g class="hero-drift-mascot parallax-mid">
+    <g transform="translate(775, 706)">
+      <line x1="0" y1="-32" x2="0" y2="-44" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="0" cy="-47" r="4.5" fill="var(--mascot-antenna, var(--blue))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="32" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M -22 -14 C -12 -26, 12 -26, 22 -14" stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="0.8"/>
+      <circle cx="-32" cy="2" r="5" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="32" cy="2" r="5" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M -22 -4 C -22 -18, 22 -18, 22 -4 C 22 14, -22 14, -22 -4 Z" fill="var(--text)"/>
+      <path d="M -15 -8 C -13 -13, -2 -14, 5 -12" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <circle cx="12" cy="-6" r="2" fill="var(--blue)"/>
+      <ellipse cx="-20" cy="24" rx="8" ry="6" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <ellipse cx="20" cy="24" rx="8" ry="6" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- 2. Floating Objects tied to the product -->
+  <!-- Object 1: Tilted Flashcard -->
+  <g class="hero-drift-1 parallax-near">
+    <g class="floating-flashcard-group" transform="translate(1080, 240) rotate(-6.5)" filter="url(#hero-shadow)">
+      <rect x="4" y="5" width="186" height="118" rx="16" fill="var(--illustration-fill-3)"/>
+      <rect x="0" y="0" width="186" height="118" rx="16" fill="var(--surface-raised, var(--surface))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <line x1="16" y1="2" x2="170" y2="2" stroke="#FFFFFF" stroke-width="2" opacity="0.9"/>
+      <rect x="14" y="14" width="86" height="18" rx="9" fill="var(--card-tag-bg, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+      <circle cx="23" cy="23" r="3" fill="var(--accent)"/>
+      <text x="32" y="26" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--accent-ink)" letter-spacing="0.5px">ACTIVE RECALL</text>
+      <text x="14" y="48" font-family="'Plus Jakarta Sans',sans-serif" font-size="10.5" font-weight="700" fill="var(--text)">Atmosphere layers?</text>
+      <text x="14" y="66" font-family="'DM Sans',sans-serif" font-size="8.8" font-weight="500" fill="var(--text-secondary)">1 Tropo → 2 Strato → 3 Meso</text>
+      <text x="14" y="80" font-family="'DM Sans',sans-serif" font-size="8.8" font-weight="500" fill="var(--text-secondary)">4 Thermo → 5 Exosphere</text>
+      <rect x="14" y="90" width="158" height="18" rx="6" fill="var(--bg-tint-lavender)"/>
+      <text x="20" y="102" font-family="'DM Sans',sans-serif" font-size="7.6" font-style="italic" fill="var(--text-muted)">Mnemonic: T-S-M-T-E</text>
+    </g>
+  </g>
+
+  <!-- Object 2: Faceted Mineral Crystal -->
+  <g class="hero-drift-3 parallax-near">
+    <g class="floating-crystal-group" transform="translate(230, 260)" filter="url(#hero-shadow)">
+      <polygon points="24,0 48,20 24,32 0,20" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="0,20 24,32 18,62 0,40" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="24,32 48,20 48,40 30,62" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="18,62 24,32 30,62 24,68" fill="var(--blue-200)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="24,3 32,18 24,24" fill="#FFFFFF" opacity="0.65"/>
+    </g>
+  </g>
+
+  <!-- Object 3: Botanical Leaf -->
+  <g class="hero-drift-4 parallax-mid">
+    <g class="floating-leaf-group" transform="translate(1220, 560) rotate(22)" filter="url(#hero-shadow)">
+      <path d="M 0 46 C 0 16, 22 0, 48 0 C 48 30, 26 46, 0 46 Z" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M 0 46 Q 22 24, 48 0" stroke="var(--illustration-stroke)" stroke-width="1.5" fill="none"/>
+      <line x1="16" y1="28" x2="10" y2="18" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
+      <line x1="28" y1="16" x2="22" y2="8" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
+      <line x1="22" y1="36" x2="30" y2="40" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M 6 36 C 10 18, 24 8, 42 4" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7"/>
+    </g>
+  </g>
+
+  <!-- Object 4: Water Droplet -->
+  <g class="hero-drift-5 parallax-near">
+    <g class="floating-droplet-group" transform="translate(290, 610)" filter="url(#hero-shadow)">
+      <path d="M 18 0 C 18 0, 36 22, 36 34 C 36 44, 28 52, 18 52 C 8 52, 0 44, 0 34 C 0 22, 18 0, 18 0 Z"
+            fill="var(--blue-200)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M 10 24 C 6 30, 6 38, 10 44" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+      <circle cx="24" cy="38" r="2.5" fill="#FFFFFF" opacity="0.6"/>
+    </g>
+  </g>
+
+  <!-- Object 5: Small Satellite -->
+  <g class="hero-drift-2 parallax-far desktop-only-obj">
+    <g class="floating-satellite-group" transform="translate(1240, 160) rotate(-10)" filter="url(#hero-shadow)">
+      <rect x="0" y="14" width="22" height="14" rx="2" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <line x1="11" y1="14" x2="11" y2="28" stroke="var(--illustration-stroke)" stroke-width="1"/>
+      <rect x="25" y="10" width="24" height="22" rx="4" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="37" cy="21" r="5" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+      <rect x="52" y="14" width="22" height="14" rx="2" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <line x1="63" y1="14" x2="63" y2="28" stroke="var(--illustration-stroke)" stroke-width="1"/>
+      <line x1="37" y1="10" x2="37" y2="2" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 31 2 C 31 -2, 43 -2, 43 2" stroke="var(--illustration-stroke)" stroke-width="1.5" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Object 6: MCQ Option Bubbles A / B / C / D -->
+  <!-- Option A -->
+  <g class="hero-drift-3 parallax-mid desktop-only-obj">
+    <g transform="translate(190, 480)" filter="url(#hero-shadow)">
+      <circle cx="20" cy="20" r="20" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 8 16 C 12 8, 24 8, 30 12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.75"/>
+      <text x="20" y="25" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="14" font-weight="800" fill="var(--text)">A</text>
+    </g>
+  </g>
+
+  <!-- Option B -->
+  <g class="hero-drift-1 parallax-far desktop-only-obj">
+    <g transform="translate(1010, 480)" filter="url(#hero-shadow)">
+      <circle cx="18" cy="18" r="18" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 8 14 C 12 8, 22 8, 28 12" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.7"/>
+      <text x="18" y="23" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="13" font-weight="800" fill="var(--text)">B</text>
+    </g>
+  </g>
+
+  <!-- Option C -->
+  <g class="hero-drift-5 parallax-far desktop-only-obj" filter="url(#blur-mid)" opacity="0.75">
+    <g transform="translate(360, 210)">
+      <circle cx="16" cy="16" r="16" fill="var(--lav-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <text x="16" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="12" font-weight="800" fill="var(--text)">C</text>
+    </g>
+  </g>
+
+  <!-- Option D -->
+  <g class="hero-drift-6 parallax-near">
+    <g class="floating-option-d-group" transform="translate(1040, 610)" filter="url(#hero-shadow)">
+      <circle cx="22" cy="22" r="22" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 10 16 C 14 10, 26 10, 32 14" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.8"/>
+      <text x="22" y="28" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="16" font-weight="800" fill="var(--ok-ink)">D</text>
+      <!-- Checked badge -->
+      <circle cx="36" cy="10" r="8.5" fill="var(--hero-d-badge, var(--ok-ink))" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+      <path d="M 33 10 L 35.5 12.5 L 39.5 7.5" stroke="var(--hero-d-check, var(--surface))" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Star sparkles at varying depths -->
+  <use href="#star-sparkle" x="160" y="180" class="desktop-only-obj" filter="url(#blur-mid)" opacity="0.6"/>
+  <use href="#star-sparkle" x="1340" y="320" class="desktop-only-obj" opacity="0.7"/>
+  <use href="#star-sparkle" x="420" y="680" class="desktop-only-obj" opacity="0.5"/>
+
+  <!-- SVG feTurbulence grain texture overlay -->
+  <rect width="100%" height="100%" filter="url(#hero-grain)" opacity="var(--grain-opacity, 0.045)" pointer-events="none"/>
+</svg>
+</div>
+`;
+
+function initHeroParallax() {
+  const hero = $('.hero-atmosphere');
+  if (!hero || reduce || !matchMedia('(pointer:fine)').matches) return;
+  let rafId = null;
+  const onMove = e => {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      const rect = hero.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) - 0.5;
+      const y = ((e.clientY - rect.top) / rect.height) - 0.5;
+      hero.style.setProperty('--hero-mx', x.toFixed(3));
+      hero.style.setProperty('--hero-my', y.toFixed(3));
+      rafId = null;
+    });
+  };
+  hero.addEventListener('pointermove', onMove, { passive: true });
+}
+
+function publicLanding() {
+  setNav(null);
+  view.innerHTML = `
+    <!-- Hero Section: "The Atmosphere is the World" -->
+    <section class="hero-atmosphere" aria-labelledby="hero-heading">
+      ${heroAtmosphereSvg()}
+      <div class="hero-backdrop" aria-hidden="true"></div>
+      <div class="hero-content">
+        <span class="hero-eyebrow">LEARN-SKIT · FAT REVISION</span>
+        <h1 id="hero-heading" class="hero-headline">Revise what the exam actually asks.</h1>
+        <p class="hero-subtext">Flashcards, predicted MCQs and 6-minute notes for EVS and Quant &amp; Qual.</p>
+        <div class="hero-cta-wrap">
+          <button type="button" class="hero-cta-pill" data-action="google-signin" aria-label="Begin revising with your Google account">
+            <span class="hero-cta-content">
+              <svg class="g" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+              <span class="hero-cta-label">Begin revising</span>
+            </span>
+            <span class="hero-cta-icon-box" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </span>
+          </button>
+          <span class="hero-cta-subnote">Free with your Google account</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Stats Band Section -->
+    <section class="landing-sec-stats scroll-fade-up" aria-label="Course numbers">
+      <div class="l-container">
+        <div class="stats-band">
+          <!-- Stat 1: 200+ MCQs -->
+          <div class="stat-cell">
+            <div class="stat-num-row">
+              <span class="stat-number num" data-target="200" data-suffix="+">200+</span>
+              <div class="stat-illu" aria-hidden="true">
+                <svg viewBox="0 0 36 36" width="36" height="36" focusable="false">
+                  <rect x="3" y="3" width="30" height="30" rx="10" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <path d="M 10 18 L 16 24 L 26 12" stroke="var(--ok-ink)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <path d="M 6 10 C 10 6, 20 6, 26 8" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.8"/>
+                </svg>
+              </div>
+            </div>
+            <span class="stat-label">Predicted core MCQs</span>
+          </div>
+
+          <div class="stat-divider" aria-hidden="true"></div>
+
+          <!-- Stat 2: 24 Cards per module -->
+          <div class="stat-cell">
+            <div class="stat-num-row">
+              <span class="stat-number num" data-target="24">24</span>
+              <div class="stat-illu" aria-hidden="true">
+                <svg viewBox="0 0 40 36" width="40" height="36" focusable="false">
+                  <rect x="14" y="3" width="22" height="26" rx="4" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(8 25 16)"/>
+                  <rect x="8" y="5" width="22" height="26" rx="4" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(-4 19 18)"/>
+                  <rect x="4" y="6" width="22" height="26" rx="4" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <line x1="8" y1="12" x2="22" y2="12" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round"/>
+                  <line x1="8" y1="17" x2="18" y2="17" stroke="var(--blue)" stroke-width="1.2" stroke-linecap="round"/>
+                  <line x1="8" y1="22" x2="14" y2="22" stroke="var(--blue)" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+            <span class="stat-label">Cards per module</span>
+          </div>
+
+          <div class="stat-divider" aria-hidden="true"></div>
+
+          <!-- Stat 3: 2 Full syllabus subjects -->
+          <div class="stat-cell">
+            <div class="stat-num-row">
+              <span class="stat-number num" data-target="2">2</span>
+              <div class="stat-illu" aria-hidden="true">
+                <svg viewBox="0 0 36 36" width="36" height="36" focusable="false">
+                  <circle cx="18" cy="18" r="14" fill="var(--blue-50)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <ellipse cx="18" cy="18" rx="7" ry="14" fill="none" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                  <line x1="4" y1="18" x2="32" y2="18" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                  <path d="M 7 11 Q 18 14 29 11" fill="none" stroke="var(--illustration-stroke)" stroke-width="1" stroke-dasharray="2 2"/>
+                  <path d="M 7 25 Q 18 22 29 25" fill="none" stroke="var(--illustration-stroke)" stroke-width="1" stroke-dasharray="2 2"/>
+                  <path d="M 9 9 C 13 6, 20 6, 25 8" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.8"/>
+                </svg>
+              </div>
+            </div>
+            <span class="stat-label">Full syllabus subjects</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Features Bento Grid -->
+    <section class="landing-sec scroll-fade-up" aria-labelledby="features-heading">
+      <div class="l-container">
+        <div class="landing-sec-header">
+          <h2 id="features-heading" class="landing-sec-heading">Everything needed to clear the FAT</h2>
+          <p class="landing-sec-subtext">Organized directly from the course decks into focused revision formats.</p>
+        </div>
+
+        <div class="features-bento-grid">
+          <!-- Card 1: Flashcards (Wide, Lavender tint) -->
+          <div class="bento-card bento-card-lav bento-card-wide">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Flashcards</h3>
+              <p class="bento-card-desc">Active recall cards with formulas, key definitions, and trap callouts.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 320 180" focusable="false">
+                <!-- Stacked 3 tilted cards -->
+                <rect x="50" y="32" width="220" height="124" rx="14" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(-6 160 94)"/>
+                <rect x="50" y="32" width="220" height="124" rx="14" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(4 160 94)"/>
+                <!-- Front surface card -->
+                <g transform="rotate(-1.5 160 94)">
+                  <rect x="50" y="28" width="220" height="126" rx="14" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <!-- Card badge -->
+                  <rect x="66" y="44" width="76" height="16" rx="8" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="104" y="55.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8.5" font-weight="700" fill="var(--text)" text-anchor="middle">KEY CONCEPT</text>
+                  <!-- Formula box -->
+                  <rect x="66" y="68" width="188" height="34" rx="8" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="160" y="90" font-family="'IBM Plex Sans',monospace" font-size="13" font-weight="600" fill="var(--text)" text-anchor="middle">BOD₅ = (DO₀ − DO₅) × P</text>
+                  <!-- Card footer chips -->
+                  <circle cx="74" cy="128" r="4" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="84" y="123" width="56" height="10" rx="5" fill="var(--blue-50)"/>
+                  <text x="240" y="132" font-family="'IBM Plex Sans',sans-serif" font-size="10" font-weight="600" fill="var(--text-muted)" text-anchor="end">Card 04 / 24</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 2: Predicted MCQs (Wide, Blue tint) -->
+          <div class="bento-card bento-card-blue bento-card-wide">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Predicted MCQs</h3>
+              <p class="bento-card-desc">Exam-style multiple choice questions mirroring FAT patterns with breakdowns.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 320 180" focusable="false">
+                <!-- 4 A/B/C/D option bubbles -->
+                <!-- Option A -->
+                <rect x="25" y="16" width="270" height="32" rx="10" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="32" r="9" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="36" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">A</text>
+                <rect x="62" y="27" width="160" height="9" rx="4.5" fill="var(--lav)"/>
+
+                <!-- Option B -->
+                <rect x="25" y="54" width="270" height="32" rx="10" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="70" r="9" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="74" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">B</text>
+                <rect x="62" y="65" width="130" height="9" rx="4.5" fill="var(--lav)"/>
+
+                <!-- Option C -->
+                <rect x="25" y="92" width="270" height="32" rx="10" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="108" r="9" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="112" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">C</text>
+                <rect x="62" y="103" width="180" height="9" rx="4.5" fill="var(--lav)"/>
+
+                <!-- Option D (HIGHLIGHTED MINT CORRECT ANSWER) -->
+                <rect x="25" y="130" width="270" height="34" rx="10" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="147" r="9" fill="var(--ok-ink)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="151" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--surface)" text-anchor="middle">D</text>
+                <text x="62" y="151" font-family="'DM Sans',sans-serif" font-size="11" font-weight="700" fill="var(--ok-ink)">Biochemical oxygen demand (BOD)</text>
+                <!-- Checked badge -->
+                <circle cx="275" cy="147" r="7.5" fill="var(--ok-ink)"/>
+                <path d="M 271.5 147 L 274 149.5 L 278.5 144" stroke="var(--surface)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 3: Six-minute Cheat Sheets (Compact, Peach tint) -->
+          <div class="bento-card bento-card-peach bento-card-compact">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Six-minute cheat sheets</h3>
+              <p class="bento-card-desc">High-yield summaries condensing whole modules into 6-minute reads.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 280 150" focusable="false">
+                <!-- Document sheet -->
+                <g transform="translate(45, 12)">
+                  <path d="M 0 0 L 150 0 L 190 40 L 190 126 C 190 130 186 134 182 134 L 8 134 C 4 134 0 130 0 126 Z" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                  <path d="M 150 0 L 150 40 L 190 40" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                  <!-- Badge "6 MIN" -->
+                  <rect x="18" y="18" width="70" height="18" rx="9" fill="var(--accent)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                  <circle cx="28" cy="27" r="4.5" fill="none" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <polyline points="28,24 28,27 30.5,27" stroke="var(--illustration-stroke)" stroke-width="1" stroke-linecap="round"/>
+                  <text x="56" y="30.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">6 MIN READ</text>
+                  <!-- Fake summary lines with pastel dots -->
+                  <circle cx="24" cy="54" r="3.5" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="50" width="120" height="7" rx="3.5" fill="var(--text)" opacity="0.8"/>
+                  <circle cx="24" cy="74" r="3.5" fill="var(--accent)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="70" width="138" height="7" rx="3.5" fill="var(--text-muted)" opacity="0.7"/>
+                  <circle cx="24" cy="94" r="3.5" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="90" width="105" height="7" rx="3.5" fill="var(--text-muted)" opacity="0.7"/>
+                  <circle cx="24" cy="114" r="3.5" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="110" width="126" height="7" rx="3.5" fill="var(--text-muted)" opacity="0.7"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 4: Chalkboard Video (Compact, White tint) -->
+          <div class="bento-card bento-card-white bento-card-compact">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Video lessons</h3>
+              <p class="bento-card-desc">Chalkboard lessons in three paces: Full syllabus, Sprint, and Blitz.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 280 150" focusable="false">
+                <!-- Chalkboard frame -->
+                <rect x="25" y="10" width="230" height="128" rx="12" fill="var(--chalkboard-bg, #202945)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <!-- Subtle board grid/math curves -->
+                <path d="M 40 75 Q 90 35 140 75 T 240 75" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="3 3" opacity="0.25"/>
+                <line x1="40" y1="85" x2="240" y2="85" stroke="#FFFFFF" stroke-width="1" opacity="0.15"/>
+                <!-- Center play button -->
+                <circle cx="140" cy="54" r="20" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <polygon points="135,45 150,54 135,63" fill="#FFFFFF"/>
+                <!-- 3 Pace Chips at bottom -->
+                <g transform="translate(36, 96)">
+                  <!-- Chip 1: Full syllabus -->
+                  <rect x="0" y="0" width="70" height="20" rx="6" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="35" y="13.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="700" fill="var(--text)" text-anchor="middle">Full syllabus</text>
+                  <!-- Chip 2: Sprint -->
+                  <rect x="76" y="0" width="58" height="20" rx="6" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="105" y="13.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="700" fill="var(--text)" text-anchor="middle">Sprint</text>
+                  <!-- Chip 3: Blitz -->
+                  <rect x="140" y="0" width="58" height="20" rx="6" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="169" y="13.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="700" fill="var(--ok-ink)" text-anchor="middle">Blitz</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. How It Works Path -->
+    <section class="landing-sec scroll-fade-up" aria-labelledby="steps-heading">
+      <div class="l-container">
+        <div class="landing-sec-header">
+          <h2 id="steps-heading" class="landing-sec-heading">How it works</h2>
+          <p class="landing-sec-subtext">Three straightforward steps to start revising in seconds.</p>
+        </div>
+
+        <div class="how-path-wrap">
+          <!-- Mobile vertical connecting line -->
+          <div class="how-mobile-track" aria-hidden="true"></div>
+
+          <!-- Desktop horizontal connecting line behind circles -->
+          <div class="how-desktop-line-wrap" aria-hidden="true">
+            <svg class="how-desktop-line-svg" viewBox="0 0 800 4" preserveAspectRatio="none" focusable="false">
+              <line x1="0" y1="2" x2="800" y2="2" stroke="var(--illustration-stroke)" stroke-width="2" class="how-path-line"/>
+            </svg>
+          </div>
+
+          <div class="how-steps-list">
+            <!-- Step 1: Sign in -->
+            <div class="how-step-item">
+              <div class="how-num-circle" aria-label="Step 1">1</div>
+              <div class="how-step-body">
+                <div class="how-step-icon-badge" aria-hidden="true">
+                  <!-- Outlined Key -->
+                  <svg viewBox="0 0 32 32" width="32" height="32" focusable="false">
+                    <circle cx="12" cy="14" r="8" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                    <circle cx="12" cy="14" r="3.5" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                    <path d="M 18 17 L 27 26 L 25 28 L 23 26 L 21 28 L 19 26" fill="none" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <h3 class="how-step-title">Sign in</h3>
+                <p class="how-step-desc">Log in with any Google account to unlock your personal revision space.</p>
+              </div>
+            </div>
+
+            <!-- Step 2: Pick a subject -->
+            <div class="how-step-item">
+              <div class="how-num-circle" aria-label="Step 2">2</div>
+              <div class="how-step-body">
+                <div class="how-step-icon-badge" aria-hidden="true">
+                  <!-- Outlined Globe -->
+                  <svg viewBox="0 0 32 32" width="32" height="32" focusable="false">
+                    <circle cx="16" cy="16" r="12" fill="var(--blue-50)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                    <ellipse cx="16" cy="16" rx="6" ry="12" fill="none" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                    <line x1="4" y1="16" x2="28" y2="16" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                    <path d="M 6 10 Q 16 12 26 10" fill="none" stroke="var(--illustration-stroke)" stroke-width="1" stroke-dasharray="2 2"/>
+                  </svg>
+                </div>
+                <h3 class="how-step-title">Pick a subject</h3>
+                <p class="how-step-desc">Select Environmental Studies or Quantitative &amp; Qualitative Skills.</p>
+              </div>
+            </div>
+
+            <!-- Step 3: Revise and bookmark -->
+            <div class="how-step-item">
+              <div class="how-num-circle" aria-label="Step 3">3</div>
+              <div class="how-step-body">
+                <div class="how-step-icon-badge" aria-hidden="true">
+                  <!-- Outlined Bookmark -->
+                  <svg viewBox="0 0 32 32" width="32" height="32" focusable="false">
+                    <path d="M 9 5 C 9 4 10 3 11 3 L 21 3 C 22 3 23 4 23 5 L 23 27 L 16 22 L 9 27 Z" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                    <line x1="12" y1="9" x2="20" y2="9" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="12" y1="13" x2="18" y2="13" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h3 class="how-step-title">Revise and save</h3>
+                <p class="how-step-desc">Drill cards, solve MCQs, and bookmark questions for quick review.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Final CTA Panel -->
+    <section class="landing-sec scroll-fade-up" aria-labelledby="cta-heading">
+      <div class="l-container">
+        <div class="final-cta-panel">
+          <!-- Illustrated Corner Floating Objects + Fine Grain -->
+          <div class="final-cta-corner-art" aria-hidden="true">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" style="width:100%;height:100%" focusable="false">
+              <defs>
+                <filter id="final-cta-grain">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise"/>
+                  <feColorMatrix type="matrix" values="0.11 0 0 0 0.11   0 0.14 0 0 0.14   0 0 0.25 0 0.25   0 0 0 0.04 0"/>
+                </filter>
+              </defs>
+              <!-- Top-left faceted crystal -->
+              <g transform="translate(-20, -20) rotate(-15 60 60)">
+                <polygon points="60,10 110,40 100,100 40,110 10,70" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <polygon points="60,10 70,55 10,70" fill="var(--peach-200)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <polygon points="60,10 110,40 70,55" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <polygon points="70,55 110,40 100,100" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+              </g>
+              <!-- Top-right water droplet -->
+              <g transform="translate(1140, -10) rotate(15)">
+                <path d="M 30 0 C 30 0 60 45 60 65 C 60 85 45 100 30 100 C 15 100 0 85 0 65 C 0 45 30 0 30 0 Z" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M 22 40 C 22 40 14 55 14 68 C 14 74 18 78 24 78" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+              </g>
+              <!-- Bottom-left leaf -->
+              <g transform="translate(-15, 310) rotate(-25 50 50)">
+                <path d="M 0 50 C 30 0 80 10 100 50 C 80 90 30 100 0 50 Z" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <line x1="0" y1="50" x2="90" y2="50" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <line x1="30" y1="50" x2="45" y2="30" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <line x1="50" y1="50" x2="68" y2="32" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <line x1="30" y1="50" x2="45" y2="70" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <line x1="50" y1="50" x2="68" y2="68" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+              </g>
+              <!-- Bottom-right satellite -->
+              <g transform="translate(1110, 310) rotate(-10)">
+                <rect x="35" y="25" width="30" height="22" rx="4" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <line x1="50" y1="25" x2="50" y2="10" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="50" cy="8" r="3" fill="var(--accent)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <rect x="0" y="28" width="28" height="16" rx="2" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <rect x="72" y="28" width="28" height="16" rx="2" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+              </g>
+              <!-- Subtle fine grain overlay -->
+              <rect width="100%" height="100%" filter="url(#final-cta-grain)" opacity="var(--grain-opacity, 0.04)" pointer-events="none"/>
+            </svg>
+          </div>
+
+          <!-- Centered CTA Content Block -->
+          <div class="final-cta-content">
+            <h2 id="cta-heading" class="final-cta-heading">Ready to start your FAT revision?</h2>
+            <p class="final-cta-lead">Sign in with Google and pick up where you left off.</p>
+            <button type="button" class="hero-cta-pill final-cta-pill" data-action="google-signin" aria-label="Sign in with Google to start FAT revision">
+              <span class="hero-cta-content">
+                <svg class="g" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+                <span class="hero-cta-label">Sign in with Google</span>
+              </span>
+              <span class="hero-cta-icon-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </span>
+            </button>
+            <span class="final-cta-subnote">Free with your Google account</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Landing Footer -->
+    <footer class="landing-footer">
+      <div class="l-container">
+        <div class="landing-footer-inner">
+          <div class="landing-footer-brand">
+            <span class="landing-footer-logo">learn-skit</span>
+            <span class="landing-footer-sep" aria-hidden="true">·</span>
+            <span class="landing-footer-tag">Independent FAT revision study tool</span>
+          </div>
+          <nav class="landing-footer-links" aria-label="Legal">
+            <a href="#/privacy" class="landing-footer-link">Privacy</a>
+            <a href="#/terms" class="landing-footer-link">Terms</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+  `;
+
+  $$('[data-action="google-signin"]', view).forEach(btn => {
+    btn.onclick = () => {
+      const nextTarget = new URLSearchParams(location.search).get('next');
+      LearnSkit.signIn(nextTarget);
+    };
+  });
+  initHeroParallax();
+  initLandingScrollEffects();
+}
+
+function initLandingScrollEffects() {
+  // 1. Header scroll border
+  const onScroll = () => {
+    const header = document.querySelector('header.top');
+    if (header) {
+      if (window.scrollY > 8) {
+        header.classList.add('is-scrolled');
+      } else {
+        header.classList.remove('is-scrolled');
+      }
+    }
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // 2. IntersectionObserver for fade-up, counter, and line drawing
+  if (!('IntersectionObserver' in window)) {
+    $$('.scroll-fade-up').forEach(el => el.classList.add('in-view'));
+    $$('.how-path-line').forEach(el => el.classList.add('animated'));
     return;
   }
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const target = entry.target;
+        target.classList.add('in-view');
+
+        // Check if this is the stats section
+        const statNums = $$('.stat-number', target);
+        if (statNums.length > 0) {
+          statNums.forEach(el => {
+            const targetVal = parseInt(el.dataset.target, 10);
+            const suffix = el.dataset.suffix || '';
+            if (reduce) {
+              el.textContent = targetVal + suffix;
+              return;
+            }
+            const duration = 650;
+            const startTime = performance.now();
+            const tick = (now) => {
+              const elapsed = now - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              const eased = 1 - Math.pow(1 - progress, 3);
+              const current = Math.round(eased * targetVal);
+              el.textContent = current + suffix;
+              if (progress < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+          });
+        }
+
+        // Check if How It Works path line
+        const pathLine = $('.how-path-line', target);
+        if (pathLine) {
+          pathLine.classList.add('animated');
+        }
+
+        obs.unobserve(target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+
+  $$('.scroll-fade-up').forEach(el => observer.observe(el));
+}
+
+function compactSignIn() {
+  setNav(null);
+  view.innerHTML = `
+    <div class="compact-signin-shell view-in">
+      <div class="compact-signin-card glass">
+        <svg viewBox="0 0 32 32" width="36" height="36" aria-hidden="true"><path d="M16 3c7 0 13 5 13 12s-5 14-13 14S3 23 3 16 9 3 16 3z" fill="var(--logo-mark-peach, #F5B69E)"/><circle cx="12" cy="12" r="5" fill="var(--logo-mark-blue, #8DB9F0)"/></svg>
+        <div>
+          <h2>Sign in to learn-skit</h2>
+          <p>Access your exam flashcards, predicted MCQs, and saved progress across devices.</p>
+        </div>
+        ${googleBtn('Continue with Google', 'w-full')}
+        <p class="landing-cta-note">Free with any Google account</p>
+        <div class="utility-links row" style="margin-top:8px">
+          <a href="#/privacy">Privacy</a><span>·</span><a href="#/terms">Terms</a>
+        </div>
+      </div>
+    </div>
+  `;
+  $$('[data-action="google-signin"]', view).forEach(btn => {
+    btn.onclick = () => {
+      const nextTarget = new URLSearchParams(location.search).get('next');
+      LearnSkit.signIn(nextTarget);
+    };
+  });
+  initHeroParallax();
+}
+
+/* ---------- router ---------- */
+function setNav(k) { $$('.nav a').forEach(a => a.dataset.nav === k ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')); }
+
+function route() {
+  cleanupView(); cleanupView = () => {}; StudyWorkspace.stop();
+  updateHeader();
+  const h = location.hash || '#/'; onKey = null; setNav(null);
+
+  // Manage robots meta tag: public routes index, follow; protected routes noindex, nofollow
+  const robotsMeta = $('#meta-robots') || document.querySelector('meta[name="robots"]');
+  const isPublicRoute = /^(?:#\/?|\/#\/?|#\/(?:privacy|terms|about|methodology|sign-in))(?:\?.*)?$/.test(h);
+  if (robotsMeta) {
+    robotsMeta.setAttribute('content', isPublicRoute ? 'index, follow' : 'noindex, nofollow');
+  }
+
+  // Canonicalize legacy routes
+  const canonical = h.replace(/^#\/s\/(?:quantitative-1|qualitative-1)(?=\/|$)/, '#/s/skills-1').replace(/^#\/(predicted|bonus)\/([\w-]+)$/, (_,kind,slug) => `#/s/${['quantitative-1','qualitative-1'].includes(slug) ? 'skills-1' : slug}/full-test`).replace(/\/s\/([\w-]+)\/(?:predicted|bonus)$/, '/s/$1/full-test');
+  if (canonical !== h) { location.replace(canonical); return; }
+
+  // Public standalone pages
+  if (/^#\/(privacy|terms|about|methodology)$/.test(h.split('?')[0])) {
+    StudyWorkspace.render(view, h.split('?')[0].slice(2));
+    return;
+  }
+
+  // Dedicated compact sign-in page
+  if (h.startsWith('#/sign-in')) {
+    if (LearnSkit.user) { location.replace('#/'); return; }
+    compactSignIn();
+    return;
+  }
+
+  // AUTH GUARD: When signed out
+  if (!LearnSkit.user) {
+    if (h !== '#/' && h !== '#' && h !== '#how' && !h.startsWith('#/?')) {
+      const nextTarget = h;
+      location.replace('#/?next=' + encodeURIComponent(nextTarget));
+      if (typeof LearnSkit.message === 'function') LearnSkit.message('Sign in to access this study module.');
+      return;
+    }
+    publicLanding();
+    if (h === '#how') {
+      setTimeout(() => $('#how')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }), 50);
+    }
+    return;
+  }
+
+  // AUTH GUARD: When signed in
+  // Check for saved ?next= redirect
+  const searchParams = new URLSearchParams(location.search);
+  const hashQuery = h.includes('?') ? new URLSearchParams(h.split('?')[1]) : null;
+  const nextTarget = searchParams.get('next') || hashQuery?.get('next');
+  if (nextTarget && (h === '#/' || h === '#' || h.startsWith('#/?'))) {
+    const cleanUrl = location.pathname + (nextTarget.startsWith('#') ? nextTarget : '#' + nextTarget);
+    history.replaceState(null, '', cleanUrl);
+    location.replace(nextTarget.startsWith('#') ? nextTarget : '#' + nextTarget);
+    return;
+  }
+
+  // First-party authenticated analytics
+  if (lastAnalyticsHash !== h) {
+    lastAnalyticsHash = h;
+    let referrer = 'direct';
+    try { referrer = document.referrer ? new URL(document.referrer).hostname : 'direct'; } catch {}
+    LearnSkit.queueRpc('study_event', {
+      p_id: crypto.randomUUID(),
+      p_type: 'page_view',
+      p_details: { path: h.split('?')[0], device_class: innerWidth < 860 ? 'mobile' : 'desktop', referrer }
+    });
+  }
+
   let r;
-  if(h==='#/welcome'){StudyWorkspace.render(view,'welcome');return;}
-  if((r=h.match(/^#\/tools(?:\/([\w-]+))?(?:\?.*)?$/))){StudyWorkspace.render(view,r[1]||'tools');return;}
+  if (h === '#/welcome') { StudyWorkspace.render(view, 'welcome'); return; }
+  if ((r = h.match(/^#\/tools(?:\/([\w-]+))?(?:\?.*)?$/))) { StudyWorkspace.render(view, r[1] || 'tools'); return; }
   if (h === '#/' || h === '#' || h === '#how') home();
   else if ((r = h.match(/^#\/s\/([\w-]+)\/full-test$/)) && SUB[r[1]]) {
     StudyWorkspace.render(view, 'full-test?subject=' + r[1]);
     setNav(r[1]);
   }
-  else if(h==='#/s/evs/videos'){StudyWorkspace.render(view,'videos');setNav('evs');}
+  else if (h === '#/s/evs/videos') { StudyWorkspace.render(view, 'videos'); setNav('evs'); }
   else if ((r = h.match(/^#\/s\/([\w-]+)$/))) subject(r[1]);
   else if ((r = h.match(/^#\/s\/([\w-]+)\/([\w-]+)\/(cards|practice|notes|video)$/))) session(r[1], r[2], r[3]);
   else notFound();
-  if (h === '#how') { $('#how').scrollIntoView(); return; }
+
   scrollTo({ top: 0, behavior: 'instant' });
 }
+
 document.addEventListener('click', e => { const a = e.target.closest('a[href="#how"]'); if (a && $('#how')) { e.preventDefault(); $('#how').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); } });
 addEventListener('beforeinstallprompt',event=>{event.preventDefault();window.installPrompt=event;});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
@@ -503,7 +1319,7 @@ addEventListener('hashchange', route);
 route();
 LearnSkit.start(status => {
   accessStatus = status;
-  $('#signin span').textContent = LearnSkit.user ? 'Sign out' : 'Sign in';
+  updateHeader();
   if(status==='ready'){StudyWorkspace.applyTheme();LearnSkit.retryRpcs();if(!S.d.position.profile?.onboarding_done&&!/^#\/(privacy|terms|about)/.test(location.hash)){location.hash='#/welcome';}}
   route();
 });

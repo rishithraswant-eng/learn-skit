@@ -97,13 +97,18 @@ window.LearnSkit = (() => {
       // detectSessionInUrl exchanges the code. getSession waits for initialization.
       const { error } = await client.auth.getSession();
       if (error) message('Sign-in could not finish. Please try again.');
-      history.replaceState(null, '', location.pathname + location.hash);
+      const nextTarget = params.get('next');
+      history.replaceState(null, '', location.pathname + (nextTarget ? (nextTarget.startsWith('#') ? nextTarget : '#' + nextTarget) : (location.hash || '#/')));
     }
   }
-  async function signIn() {
+  async function signIn(nextTarget) {
     if (!client) return message('Google sign-in needs the Supabase project configuration.');
     const redirect = new URL(location.pathname, location.origin);
-    redirect.hash = /^#\/(?:s\/[\w-]+(?:\/(?:full-test|videos|predicted|bonus)|\/[\w-]+\/(?:cards|practice|notes|video))?|(?:predicted|bonus)\/[\w-]+)?$/.test(location.hash) ? location.hash : '#/';
+    const searchParams = new URLSearchParams(location.search);
+    const target = nextTarget || searchParams.get('next') || (location.hash !== '#/' ? location.hash : '');
+    if (target) {
+      redirect.searchParams.set('next', target.startsWith('#') ? target : '#' + target);
+    }
     const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirect.href } });
     if (error) message('Unable to open Google sign-in. Please try again.');
   }
@@ -132,5 +137,5 @@ window.LearnSkit = (() => {
   async function retryRpcs(){if(retrying)return;retrying=true;const owner=user?.id;try{for(const [key,value] of Object.entries(state.position))if(key.startsWith('_rpc:')&&value){try{await rpc(value.name,value.args);if(user?.id!==owner)return;delete state.position[key];cache();}catch{break;}}}finally{retrying=false;}}
   addEventListener('online',retryRpcs);
   async function deleteAccount(){await rpc('study_delete_account');const id=user.id;try{localStorage.removeItem(cacheKey(id));}catch{}pending.clear();state=empty();await signOut();}
-  return { start, signIn, signOut, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl: path => client.storage.from('study-videos').createSignedUrl(path, 3600), courseUrls: paths => client.storage.from('study-videos').createSignedUrls(paths, 21600), get user() { return user; }, get state() { return state; }, put, flush };
+  return { start, signIn, signOut, message, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl: path => client.storage.from('study-videos').createSignedUrl(path, 3600), courseUrls: paths => client.storage.from('study-videos').createSignedUrls(paths, 21600), get user() { return user; }, get state() { return state; }, put, flush };
 })();

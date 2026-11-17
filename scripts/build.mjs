@@ -81,11 +81,11 @@ await writeFile(path.join(root, 'private-build/content.json'), JSON.stringify(ro
 await writeFile(path.join(root, 'private-build/status.json'), JSON.stringify(status, null, 2));
 await writeFile(path.join(root, 'js/data.js'), `// Public catalogue only. Study content is fetched after authentication.\nwindow.BRAND = ${JSON.stringify(brand)};\nwindow.SUBJECTS = ${JSON.stringify(subjects, null, 2)};\n`);
 await writeFile(path.join(root, 'js/config.js'), `window.LEARN_SKIT_CONFIG = ${JSON.stringify({supabaseUrl: url, supabaseAnonKey: key})};\n`);
-for (const file of ['index.html','css/styles.css','css/workspace.css','js/data.js','js/config.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/vendor/supabase.js','js/app.js','manifest.webmanifest','icons/app.svg','icons/app-192.png','icons/app-512.png']) {
+for (const file of ['index.html','css/styles.css','css/workspace.css','js/data.js','js/config.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/theme.js','js/vendor/supabase.js','js/app.js','manifest.webmanifest','icons/app.svg','icons/app-192.png','icons/app-512.png']) {
   await mkdir(path.dirname(path.join(root, 'dist', file)), { recursive: true });
   await copyFile(path.join(root, file), path.join(root, 'dist', file));
 }
-const shellHash=createHash('sha256');for(const file of ['index.html','css/styles.css','css/workspace.css','js/config.js','js/data.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/app.js'])shellHash.update(await read(file));
+const shellHash=createHash('sha256');for(const file of ['index.html','css/styles.css','css/workspace.css','js/config.js','js/data.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/theme.js','js/app.js'])shellHash.update(await read(file));
 const hlsBundle = 'node_modules/hls.js/dist/hls.min.js';
 await copyFile(path.join(root, hlsBundle), path.join(root, 'dist/js/vendor/hls.js'));
 shellHash.update(await read(hlsBundle));

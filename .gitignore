@@ -29,3 +29,7 @@ evs-cat2-content/qa/site-*.png
 /scripts/final-content-review.py
 /scripts/finalize-skills-content.mjs
 /study-content/manifest.json
+.DS_Store
+ERROR.png
+screenshots/
+
