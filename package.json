@@ -1,0 +1,16 @@
+{
+  "name": "learn-skit",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "preview": "node scripts/preview.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16"
+  },
+  "dependencies": {
+    "hls.js": "1.7.4"
+  }
+}

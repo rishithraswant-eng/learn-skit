@@ -1,0 +1,18 @@
+{
+  "voice": "en-IN-NeerjaNeural",
+  "rate": "+25%",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "jpeg_quality": 0.9,
+  "x264": {"preset": "veryfast", "crf": 20},
+  "audio": {"aac_kbps": 160, "lufs": -16, "true_peak": -1.5},
+  "ambient": false,
+  "pan_s": 1.2,
+  "erase_s": 1.6,
+  "panels_per_erase": 5,
+  "scene_gap_s": 0.5,
+  "chalk_cps_min": 14,
+  "chalk_cps_max": 45,
+  "lexicon_version": 1
+}

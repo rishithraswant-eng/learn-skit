@@ -1,0 +1,19 @@
+{
+  "_note": "Token -> spoken form, applied to narration before TTS (spec §8.7.3). Acronyms in the letters list are spoken letter by letter.",
+  "letters": ["CPCB", "SPCB", "SPCBs", "NGT", "EIA", "EIAs", "SDG", "SDGs", "UNFCCC", "NAPCC", "NDC", "NDCs", "IPCC", "UNEP", "WHO", "AQI", "BOD", "COD", "EPR", "GEAC", "MoEFCC", "IUCN", "CBD", "CDM", "JI", "CER", "CERs", "GWP", "MLD", "ppm", "HFCs", "PFCs", "EMP", "CFC", "CFCs", "GHG", "GHGs", "NCAP", "LPG", "CNG", "UV", "GIS", "GPS", "EU", "US", "UN"],
+  "words": {
+    "Bt": "B-T",
+    "CO₂": "C-O-two",
+    "CO2": "C-O-two",
+    "CH₄": "C-H-four",
+    "N₂O": "N-two-O",
+    "SF₆": "S-F-six",
+    "O₃": "ozone",
+    "SO₂": "S-O-two",
+    "NO₂": "N-O-two",
+    "CAMPA": "Campa",
+    "tCO₂e": "tonnes of C-O-two equivalent",
+    "°C": " degrees Celsius",
+    "₹": "rupees "
+  }
+}

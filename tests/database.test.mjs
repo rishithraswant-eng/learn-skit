@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+test('prepared database migrations enforce content, ownership, admin access and server grading locally',async()=>{
+  const db=await PGlite.create();
+  try{
+    await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema storage;
+    create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb default '{}'::jsonb);
+    create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+    grant usage on schema auth,storage,public to anon,authenticated,service_role;
+    create table storage.buckets(id text primary key,name text,public boolean);
+    create table storage.objects(id uuid primary key,bucket_id text);alter table storage.objects enable row level security;grant select on storage.objects to authenticated;`);
+    await db.exec(await readFile(new URL('../supabase/migrations/001_initial.sql',import.meta.url),'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/002_study_features.sql',import.meta.url),'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/003_analytics_admin.sql',import.meta.url),'utf8'));
+    const alice='11111111-1111-4111-8111-111111111111',bob='22222222-2222-4222-8222-222222222222';
+    await db.query(`insert into auth.users(id,email)values($1,'a@example.test'),($2,'b@example.test')`,[alice,bob]);
+    await db.query(`insert into public.study_modules values('evs','M01',$1)`,[JSON.stringify({questionIds:['Q-1'],mcq:[['Test',['A','B','C','D'],2]],bonus:[],bonusIds:[]})]);
+    await db.exec(`set role anon`);await assert.rejects(db.query('select * from public.study_modules'),/permission denied/);await db.exec('reset role');
+    await db.query(`select set_config('request.jwt.claim.sub',$1,false)`,[alice]);await db.exec('set role authenticated');
+    assert.equal((await db.query('select * from public.study_modules')).rows.length,1);
+    await db.query(`insert into public.study_progress(user_id,kind,item_id,payload)values($1,'box','C-1','2')`,[alice]);
+    await assert.rejects(db.query(`insert into public.study_progress(user_id,kind,item_id,payload)values($1,'box','C-2','2')`,[bob]),/row-level security/);
+    await assert.rejects(db.query('select public.study_admin_dashboard()'),/Admin access required/);
+    await assert.rejects(db.query(`update public.study_profiles set is_vit_verified=true`),/permission denied/);
+    await assert.rejects(db.query(`select public.study_admin_user($1)`,[bob]),/Admin access required/);
+    const attempt='33333333-3333-4333-8333-333333333333';
+    assert.equal((await db.query(`select public.study_attempt($1,'M01','Q-1',0,1000) as result`,[attempt])).rows[0].result.is_correct,false);
+    await db.query(`select public.study_attempt($1,'M01','Q-1',2,1000)`,[attempt]);
+    assert.equal((await db.query('select * from public.study_attempts')).rows.length,1);
+    assert.equal((await db.query('select * from public.study_attempts')).rows[0].is_correct,false);
+    await db.exec('reset role');await db.query(`select set_config('request.jwt.claim.sub',$1,false)`,[bob]);await db.exec('set role authenticated');
+    assert.equal((await db.query('select * from public.study_progress')).rows.length,0);
+    assert.equal((await db.query('select public.study_export_my_data() as data')).rows[0].data.attempts.length,0);
+    await assert.rejects(db.query(`select public.study_event('44444444-4444-4444-8444-444444444444','active_time','{"seconds":"bad"}')`),/Invalid active time/);
+    await db.exec('reset role');await db.query('insert into public.study_admin_members values($1)',[alice]);await db.query(`select set_config('request.jwt.claim.sub',$1,false)`,[alice]);await db.exec('set role authenticated');
+    assert.equal((await db.query('select public.study_admin_dashboard() as data')).rows[0].data.metrics.registered_users,2);
+    await db.query('select public.study_delete_account()');await db.exec('reset role');
+    assert.equal((await db.query('select count(*)::int as n from auth.users')).rows[0].n,1);
+    assert.equal((await db.query('select count(*)::int as n from public.study_progress')).rows[0].n,0);
+  }finally{await db.close();}
+});

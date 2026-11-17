@@ -1,0 +1,490 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>EVS chalkboard engine</title>
+<style>
+@font-face{font-family:Kalam;src:url(fonts/Kalam-Regular.ttf);font-weight:400}
+@font-face{font-family:Kalam;src:url(fonts/Kalam-Bold.ttf);font-weight:700}
+@font-face{font-family:Caveat;src:url(fonts/Caveat.ttf)}
+@font-face{font-family:NotoMath;src:url(fonts/NotoSansMath.ttf)}
+@font-face{font-family:PatrickHand;src:url(fonts/PatrickHand-Regular.ttf)}
+html,body{margin:0;background:#000}canvas{display:block}
+</style></head>
+<body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+/* Deterministic chalkboard renderer. renderFrame(t) is a pure function of time.
+   Board units: one panel = 1920×1080. Output 1280×720 (S = 2/3). */
+'use strict';
+const W = 1920, H = 1080, M = 90;
+let OUT_W = 1280, OUT_H = 720, S = OUT_W / W;
+const C = { white: '#F2F0E8', yellow: '#F7DE7E', orange: '#F5A766', sky: '#93D5F2', pink: '#F5A9C8', green: '#AEE3A6', dim: '#BFC6BE' };
+const TILE = ['#E57373', '#F0B357', '#7FC47F', '#E05A6A', '#E58F5F', '#5CC3E8', '#F2D35B', '#B5547A', '#EE8B4A', '#D9618C', '#F2A541', '#C9A245', '#5E9E64', '#4F95D1', '#76C26A', '#3F7FBF', '#4C6EA8'];
+const FAM = "Kalam, Caveat, NotoMath";
+const STY = {
+  heading: { size: 86, weight: 700, lh: 1.08 }, sub: { size: 66, weight: 700, lh: 1.15 },
+  body: { size: 56, weight: 400, lh: 1.24 }, small: { size: 46, weight: 400, lh: 1.24 },
+  big: { size: 128, weight: 700, lh: 1.0 }, label: { size: 50, weight: 700, lh: 1.1 },
+  table: { size: 44, weight: 400, lh: 1.2, fam: "PatrickHand, Caveat, NotoMath" }
+};
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const meas = document.createElement('canvas').getContext('2d');
+
+/* ---------- seeded RNG ---------- */
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash(s) { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+
+/* ---------- textures ---------- */
+let BOARD, GRAIN;
+function makeTextures() {
+  BOARD = document.createElement('canvas'); BOARD.width = Math.ceil(W * S); BOARD.height = OUT_H;
+  const b = BOARD.getContext('2d'), r = rng(7);
+  const g = b.createLinearGradient(0, 0, 0, OUT_H); g.addColorStop(0, '#22362D'); g.addColorStop(.55, '#1E3029'); g.addColorStop(1, '#1A2A24');
+  b.fillStyle = g; b.fillRect(0, 0, BOARD.width, OUT_H);
+  for (let i = 0; i < 26; i++) {               // smudges, wrapped horizontally => seamless tiling
+    const x = r() * BOARD.width, y = r() * OUT_H, rad = 90 + r() * 260, a = .018 + r() * .03;
+    for (const dx of [-BOARD.width, 0, BOARD.width]) {
+      const rg = b.createRadialGradient(x + dx, y, 0, x + dx, y, rad); rg.addColorStop(0, `rgba(230,235,225,${a})`); rg.addColorStop(1, 'rgba(230,235,225,0)');
+      b.fillStyle = rg; b.fillRect(x + dx - rad, y - rad, rad * 2, rad * 2);
+    }
+  }
+  for (let i = 0; i < 22000; i++) { b.fillStyle = `rgba(${r() < .5 ? '255,255,255' : '0,0,0'},${.02 + r() * .05})`; b.fillRect(r() * BOARD.width, r() * OUT_H, 1, 1); }
+  GRAIN = document.createElement('canvas'); GRAIN.width = GRAIN.height = 256;
+  const gr = GRAIN.getContext('2d'), r2 = rng(11);
+  for (let i = 0; i < 9000; i++) { gr.fillStyle = `rgba(0,0,0,${.25 + r2() * .75})`; gr.fillRect(r2() * 256, r2() * 256, r2() < .8 ? 1 : 2, 1); }
+}
+function chalkify(c2, seed) {             // eat grain holes out of a pre-rendered item
+  const g = c2.getContext('2d'); g.save(); g.globalCompositeOperation = 'destination-out';
+  const r = rng(seed); g.translate(-r() * 256, -r() * 256);
+  g.fillStyle = g.createPattern(GRAIN, 'repeat'); g.fillRect(0, 0, c2.width + 512, c2.height + 512); g.restore();
+}
+
+/* ---------- text helpers ---------- */
+const fontOf = st => `${st.weight || 400} ${st.size}px ${st.fam || FAM}`;
+function wrap(text, st, maxW) {
+  meas.font = fontOf(st); const out = [];
+  for (const para of String(text).split('\n')) {
+    let line = '';
+    for (const w of para.split(' ')) {
+      const t = line ? line + ' ' + w : w;
+      if (meas.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t;
+    }
+    out.push(line);
+  }
+  return out.map(l => ({ text: l, w: meas.measureText(l).width }));
+}
+
+/* ---------- items ---------- */
+// item: {kind:'text'|'stroke'|'live', x,y,w,h, t0,t1, img, lines|polys, panel, color}
+function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w * S) + 8); c.height = Math.max(1, Math.ceil(h * S) + 8); return c; }
+function textItem(text, x, y, maxW, style, color, extra = {}) {
+  const st = STY[style] || STY.body, lines = wrap(text, st, maxW), lh = st.size * st.lh;
+  const w = Math.max(1, ...lines.map(l => l.w)), h = lines.length * lh + st.size * .25;
+  const it = { kind: 'text', x, y, w, h, lines, lh, st, color: C[color] || color || C.white, ...extra };
+  const c = mkCanvas(w + 10, h + 10), g = c.getContext('2d');
+  g.scale(S, S); g.translate(4, 4); g.font = fontOf(st); g.textBaseline = 'alphabetic';
+  const r = rng(hash(text + x + y));
+  lines.forEach((l, i) => {
+    const by = i * lh + st.size * .95;
+    g.globalAlpha = .55; g.fillStyle = it.color; g.fillText(l.text, (r() - .5) * 1.6, by + (r() - .5) * 1.6);
+    g.globalAlpha = .9; g.fillText(l.text, 0, by);
+  });
+  chalkify(c, hash(text)); it.img = c; return it;
+}
+function strokeItem(polys, color, width = 6, extra = {}) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  polys.forEach(p => p.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }));
+  const pad = width + 6, it = { kind: 'stroke', x: x0 - pad, y: y0 - pad, w: x1 - x0 + 2 * pad, h: y1 - y0 + 2 * pad, polys, color: C[color] || color || C.white, width, ...extra };
+  it.len = polys.reduce((s, p) => s + plen(p), 0);
+  const c = mkCanvas(it.w, it.h), g = c.getContext('2d'); g.scale(S, S); g.translate(4 - it.x, 4 - it.y);
+  g.lineCap = g.lineJoin = 'round'; g.strokeStyle = it.color; const r = rng(hash(JSON.stringify(polys[0] || []) + it.color));
+  for (let pass = 0; pass < 2; pass++) {
+    g.globalAlpha = pass ? .9 : .45; g.lineWidth = width * (pass ? 1 : 1.5);
+    polys.forEach(p => { g.beginPath(); p.forEach(([x, y], i) => { const jx = (r() - .5) * (pass ? 1.2 : 2.4), jy = (r() - .5) * (pass ? 1.2 : 2.4); i ? g.lineTo(x + jx, y + jy) : g.moveTo(x + jx, y + jy); }); g.stroke(); });
+  }
+  chalkify(c, hash(it.x + ':' + it.y)); it.img = c; return it;
+}
+const plen = p => p.reduce((s, q, i) => i ? s + Math.hypot(q[0] - p[i - 1][0], q[1] - p[i - 1][1]) : 0, 0);
+const line = (x0, y0, x1, y1, n = 12) => Array.from({ length: n + 1 }, (_, i) => [x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n]);
+const ellipse = (cx, cy, rx, ry, a0 = -2.4, sweep = 6.6, n = 64) => Array.from({ length: n + 1 }, (_, i) => { const a = a0 + sweep * i / n; return [cx + rx * Math.cos(a) * (1 + .03 * Math.sin(3 * a)), cy + ry * Math.sin(a)]; });
+const rrect = (x, y, w, h, r = 22) => { const p = []; const c = (cx, cy, a0) => { for (let i = 0; i <= 6; i++) { const a = a0 + i * Math.PI / 12; p.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } };
+  c(x + w - r, y + r, -Math.PI / 2); c(x + w - r, y + h - r, 0); c(x + r, y + h - r, Math.PI / 2); c(x + r, y + r, Math.PI); p.push(p[0]); return p; };
+function arrowPolys(x0, y0, x1, y1, head = 26) {
+  const a = Math.atan2(y1 - y0, x1 - x0);
+  return [line(x0, y0, x1, y1, 16), [[x1 - head * Math.cos(a - .45), y1 - head * Math.sin(a - .45)], [x1, y1], [x1 - head * Math.cos(a + .45), y1 - head * Math.sin(a + .45)]]];
+}
+
+
+/* ---------- original line-art icons (spec §8.4 "sketch"); each returns polylines in a 100×100 box ---------- */
+const ell = (cx, cy, rx, ry, rot = 0, n = 36) => Array.from({ length: n + 1 }, (_, i) => { const a = i * 2 * Math.PI / n, x = rx * Math.cos(a), y = ry * Math.sin(a); return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)]; });
+const ICONS = {
+  leaf: () => [ell(50, 50, 40, 20, -0.7), line(22, 78, 80, 20, 8)],
+  flask: () => [[[40, 10], [40, 40], [16, 88], [84, 88], [60, 40], [60, 10]], line(34, 10, 66, 10, 4), line(26, 70, 74, 70, 6)],
+  atom: () => [ell(50, 50, 44, 15, 0), ell(50, 50, 44, 15, 1.05), ell(50, 50, 44, 15, -1.05), ell(50, 50, 4, 4, 0, 10)],
+  rock: () => [[[6, 88], [30, 40], [44, 60], [62, 18], [94, 88], [6, 88]], [[52, 42], [62, 18], [72, 40]]],
+  globe: () => [ell(50, 50, 42, 42), ell(50, 50, 18, 42), line(8, 50, 92, 50, 8), line(14, 30, 86, 30, 8), line(14, 70, 86, 70, 8)],
+  coin: () => [ell(50, 50, 42, 42), ell(50, 50, 32, 32), [[36, 30], [64, 30]], [[36, 42], [64, 42]], [[40, 30], [52, 30], [56, 36], [52, 42], [40, 42], [60, 70]]],
+  pillar: () => [[[10, 34], [50, 10], [90, 34], [10, 34]], line(22, 38, 22, 80, 4), line(42, 38, 42, 80, 4), line(58, 38, 58, 80, 4), line(78, 38, 78, 80, 4), line(8, 86, 92, 86, 6)],
+  people: () => [ell(34, 30, 12, 12), ell(68, 34, 11, 11), [[12, 88], [16, 58], [34, 48], [52, 58], [56, 88]], [[50, 88], [54, 62], [68, 54], [84, 62], [88, 88]]],
+  gear: () => { const p = []; for (let i = 0; i <= 48; i++) { const a = i * 2 * Math.PI / 48, r = (Math.floor(i / 3) % 2) ? 32 : 42; p.push([50 + r * Math.cos(a), 50 + r * Math.sin(a)]); } return [p, ell(50, 50, 12, 12)]; },
+  scales: () => [line(50, 12, 50, 88, 6), line(18, 26, 82, 26, 6), line(30, 88, 70, 88, 4), [[18, 26], [8, 56]], [[18, 26], [28, 56]], ell(18, 60, 13, 5), [[82, 26], [72, 56]], [[82, 26], [92, 56]], ell(82, 60, 13, 5)],
+  factory: () => [[[8, 90], [8, 50], [30, 36], [30, 50], [52, 36], [52, 50], [74, 36], [74, 20], [86, 20], [86, 90], [8, 90]], ell(82, 10, 6, 4), ell(90, 4, 5, 3)],
+  tree: () => [ell(50, 36, 30, 28), line(50, 64, 50, 92, 4), line(36, 92, 64, 92, 4)],
+  cloud: () => [[[20, 66], [12, 54], [22, 42], [36, 42], [44, 28], [62, 28], [72, 40], [86, 44], [90, 58], [80, 68], [20, 66]]],
+  drop: () => [[[50, 8], [72, 46], [76, 62], [68, 80], [50, 88], [32, 80], [24, 62], [28, 46], [50, 8]]],
+  sun: () => { const r = [ell(50, 50, 18, 18)]; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; r.push(line(50 + 26 * Math.cos(a), 50 + 26 * Math.sin(a), 50 + 40 * Math.cos(a), 50 + 40 * Math.sin(a), 2)); } return r; },
+  bin: () => [[[22, 28], [78, 28]], [[40, 28], [42, 18], [58, 18], [60, 28]], [[28, 28], [32, 88], [68, 88], [72, 28]], line(42, 40, 43, 78, 4), line(58, 40, 57, 78, 4)],
+  phone: () => [[[32, 8], [68, 8], [72, 14], [72, 86], [68, 92], [32, 92], [28, 86], [28, 14], [32, 8]], line(44, 82, 56, 82, 2)],
+  smoke: () => [[[20, 90], [24, 70], [16, 56], [26, 40], [20, 24]], [[48, 90], [52, 70], [44, 56], [54, 40], [48, 24]], [[76, 90], [80, 70], [72, 56], [82, 40], [76, 24]]],
+  car: () => [[[6, 70], [12, 52], [30, 48], [40, 32], [66, 32], [78, 48], [94, 54], [94, 70], [6, 70]], ell(28, 72, 9, 9), ell(74, 72, 9, 9)],
+  thermo: () => [[[44, 66], [44, 14], [50, 8], [56, 14], [56, 66]], ell(50, 76, 12, 12), line(50, 30, 50, 70, 4)],
+  cross: () => [[[38, 10], [62, 10], [62, 38], [90, 38], [90, 62], [62, 62], [62, 90], [38, 90], [38, 62], [10, 62], [10, 38], [38, 38], [38, 10]]]
+};
+function iconItem(name, x, y, size, color) {
+  const f = ICONS[name]; if (!f) { WARN.push('unknown icon ' + name); return null; }
+  const polys = f().map(p => p.map(([u, v]) => [x + u * size / 100, y + v * size / 100]));
+  return strokeItem(polys, color, 5);
+}
+
+/* ---------- scene graph built from the timeline ---------- */
+let TL = null, ITEMS = [], ANCH = {}, PANELS = [], BEATS = [], WARN = [], PULSES = [];
+function panelState(i) {
+  if (!PANELS[i]) PANELS[i] = { x0: i * W, cur: [220, 220], layout: 'flow' };
+  return PANELS[i];
+}
+function cols(P) { const two = /two_col/.test(P.layout), cw = two ? (W - 2 * M - 70) / 2 : W - 2 * M; return { two, cw, x: [P.x0 + M, P.x0 + M + cw + 70] }; }
+function place(P, col, h) {
+  const k = cols(P), c = k.two ? (col || 0) : 0, y = P.cur[c];
+  P.cur[c] += h + 26; if (!k.two) P.cur[1] = P.cur[0];
+  if (y + h > H - 70) WARN.push(`overflow panel ${P.idx} at y=${Math.round(y + h)}`);
+  return { x: k.x[c], y, w: k.cw };
+}
+function claimFull(P, h) { const y = Math.max(P.cur[0], P.cur[1]); P.cur = [y + h + 30, y + h + 30]; if (y + h > H - 70) WARN.push(`overflow panel ${P.idx} (full) at y=${Math.round(y + h)}`); return { x: P.x0 + M, y, w: W - 2 * M }; }
+function anchor(name) { return ANCH[name]; }
+function seqTimes(parts, t0, t1) {           // spread sub-items over [t0,t1] by weight
+  const tot = parts.reduce((s, p) => s + p.wt, 0) || 1; let t = t0;
+  parts.forEach(p => { const d = (t1 - t0) * p.wt / tot; p.it.t0 = t; p.it.t1 = t + d; t += d; });
+}
+const wtText = s => Math.max(.4, String(s).length / 14), wtLen = l => Math.max(.3, l / 1800);
+
+const PRIMS = {
+  wheel(P, a, p) {
+    const n = p.spokes.length, h = p.height || 600, box = claimFull(P, h), cx = box.x + box.w / 2, cy = box.y + h / 2, rx = box.w * .36, ry = h * .40, parts = [], name = a.name || 'wheel';
+    parts.push({ it: strokeItem([ell(cx, cy, 170, 62)], 'white', 6), wt: .6 });
+    const C0 = textItem(p.center, cx - 160, cy - 30, 320, 'table', p.centerColor || 'green'); C0.x = cx - C0.w / 2; C0.y = cy - C0.h / 2; parts.push({ it: C0, wt: wtText(p.center) });
+    p.spokes.forEach((s, i) => {
+      const ang = -Math.PI / 2 + i * 2 * Math.PI / n, ex = Math.cos(ang), ey = Math.sin(ang);
+      parts.push({ it: strokeItem([line(cx + 175 * ex, cy + 66 * ey, cx + rx * .58 * ex, cy + ry * .66 * ey, 6)], 'dim', 4), wt: .2 });
+      const T = textItem(s, 0, 0, 380, 'table', p.colors?.[i] || 'sky'); T.x = cx + rx * ex - T.w / 2; T.y = cy + ry * ey - T.h / 2;
+      parts.push({ it: T, wt: wtText(s) }); ANCH[`${name}.${i}`] = T;
+    });
+    return parts;
+  },
+  icon_grid(P, a, p) {
+    const n = p.items.length, cn = p.cols || 5, rn = Math.ceil(n / cn), ch = p.cellH || 250, box = claimFull(P, rn * ch), cw = box.w / cn, sz = p.size || 110, parts = [], name = a.name || 'icons';
+    p.items.forEach(([ic, lab, sub], i) => {
+      const x = box.x + (i % cn) * cw, y = box.y + Math.floor(i / cn) * ch, col = p.colors?.[i] || 'white';
+      const I = iconItem(ic, x + (cw - sz) / 2, y, sz, col); if (I) parts.push({ it: I, wt: .5 });
+      const L = textItem(lab, x + 8, y + sz + 12, cw - 16, 'table', p.labelColor || 'sky'); L.x = x + (cw - L.w) / 2; parts.push({ it: L, wt: wtText(lab) });
+      if (sub) { const U = textItem(sub, x + 8, y + sz + 64, cw - 16, 'table', 'dim'); U.x = x + (cw - U.w) / 2; parts.push({ it: U, wt: wtText(sub) * .6 }); }
+      ANCH[`${name}.${i}`] = { x, y, w: cw, h: ch - 20 };
+    });
+    return parts;
+  },
+  timeline_rail(P, a, p) {
+    const ticks = p.ticks, box = claimFull(P, 330), y = box.y + 130, n = ticks.length, gap = box.w / n, parts = [], name = a.name || 'rail';
+    const rail = strokeItem([line(box.x, y, box.x + box.w, y, 40)], 'white', 6); parts.push({ it: rail, wt: 1 });
+    ticks.forEach(([lab, sub], i) => {
+      const cx = box.x + gap * (i + .5);
+      parts.push({ it: strokeItem([line(cx, y - 22, cx, y + 22, 4)], 'white', 6), wt: .2 });
+      const L = textItem(lab, cx - gap / 2 + 20, box.y, gap - 40, 'label', 'yellow'); L.x = cx - L.w / 2; parts.push({ it: L, wt: wtText(lab) });
+      if (sub) { const T = textItem(sub, cx - gap / 2 + 20, y + 34, gap - 40, 'small', 'white'); T.x = cx - T.w / 2; parts.push({ it: T, wt: wtText(sub) }); }
+      ANCH[`${name}.${i}`] = { x: L.x, y: L.y, w: L.w, h: y + 22 - L.y };
+      ANCH[`${name}.${i}.detail`] = { x: cx - gap / 2 + 16, y: y + 100, w: gap - 32, h: 120, center: cx };
+    });
+    return parts;
+  },
+  compare_2col(P, a, p) {
+    const box = claimFull(P, p.height || 520), cw = (box.w - 80) / 2, parts = [], name = a.name || 'cmp';
+    parts.push({ it: strokeItem([line(box.x + cw + 40, box.y, box.x + cw + 40, box.y + (p.height || 520), 20)], 'dim', 5), wt: .6 });
+    [['L', p.left, box.x], ['R', p.right, box.x + cw + 80]].forEach(([k, side, x]) => {
+      const T = textItem(side.title, x, box.y, cw, 'sub', side.color || 'sky'); parts.push({ it: T, wt: wtText(side.title) });
+      ANCH[`${name}.${k}`] = { x, y: box.y, w: cw, h: T.h };
+      let y = box.y + T.h + 20;
+      (side.items || []).forEach((s, i) => { const I = textItem('• ' + s, x, y, cw, 'small', side.itemColor || 'white'); parts.push({ it: I, wt: wtText(s) }); ANCH[`${name}.${k}.${i}`] = I; y += I.h + 8; });
+    });
+    return parts;
+  },
+  ladder(P, a, p) {
+    const steps = p.steps, rowH = p.rowH || 78, k = place(P, a.col, steps.length * rowH), parts = [], name = a.name || 'ladder';
+    steps.forEach((s, i) => {
+      const y = k.y + i * rowH;
+      const N = textItem(String(i + 1), k.x, y, 60, 'label', 'orange'); parts.push({ it: N, wt: .3 });
+      const T = textItem(s, k.x + 70, y + 2, k.w - 70, 'small', p.color || 'white'); parts.push({ it: T, wt: wtText(s) });
+      if (i < steps.length - 1) parts.push({ it: strokeItem([line(k.x + 18, y + rowH - 16, k.x + 18, y + rowH - 2, 3)], 'dim', 3), wt: .1 });
+      ANCH[`${name}.${i}`] = { x: k.x, y, w: T.w + 70, h: rowH - 10 };
+    });
+    return parts;
+  },
+  table(P, a, p) {
+    const st = STY.table, colsN = p.head.length, rowH = st.size * 1.55, h = rowH * (p.rows.length + 1), k = p.full ? claimFull(P, h) : place(P, a.col, h), parts = [], name = a.name || 'table';
+    const cw = p.widths ? p.widths.map(f => f * k.w) : Array(colsN).fill(k.w / colsN);
+    const xs = cw.reduce((acc, w) => (acc.push(acc[acc.length - 1] + w), acc), [k.x]);
+    parts.push({ it: strokeItem([line(k.x, k.y + rowH, k.x + k.w, k.y + rowH, 30)], 'white', 4), wt: .5 });
+    [p.head, ...p.rows].forEach((row, r) => row.forEach((cell, c) => {
+      const T = textItem(cell, xs[c] + 10, k.y + r * rowH + 6, cw[c] - 20, 'table', r ? (p.colColors?.[c] || 'white') : 'sky'); parts.push({ it: T, wt: wtText(cell) * .7 });
+      ANCH[`${name}.${r}.${c}`] = T;
+    }));
+    for (let c = 1; c < colsN; c++) parts.push({ it: strokeItem([line(xs[c], k.y, xs[c], k.y + h, 20)], 'dim', 3), wt: .2 });
+    return parts;
+  },
+  tile_grid(P, a, p) {
+    const n = p.tiles.length, cn = p.cols || 6, rn = Math.ceil(n / cn), gap = 18, box = claimFull(P, p.height || rn * 170), tw = (box.w - gap * (cn - 1)) / cn, th = (box.h || (p.height || rn * 170)) / rn - gap, parts = [], name = a.name || 'tiles';
+    p.tiles.forEach(([num, lab], i) => {
+      const x = box.x + (i % cn) * (tw + gap), y = box.y + Math.floor(i / cn) * (th + gap);
+      parts.push({ it: strokeItem([rrect(x, y, tw, th, 18)], TILE[(num - 1) % 17] || 'white', 6), wt: .35 });
+      const N = textItem(String(num), x + 16, y + 6, 90, 'label', TILE[(num - 1) % 17]); parts.push({ it: N, wt: .2 });
+      const L = textItem(lab, x + 16, y + 66, tw - 28, 'table', 'white'); parts.push({ it: L, wt: wtText(lab) * .6 });
+      ANCH[`${name}.${i}`] = { x, y, w: tw, h: th };
+    });
+    return parts;
+  },
+  cycle(P, a, p) {
+    const n = p.nodes.length, R = p.r || 260, box = claimFull(P, 2 * R + 140), cx = box.x + box.w / 2, cy = box.y + R + 70, parts = [], name = a.name || 'cycle';
+    p.nodes.forEach((s, i) => {
+      const ang = -Math.PI / 2 + i * 2 * Math.PI / n, x = cx + R * 1.35 * Math.cos(ang), y = cy + R * Math.sin(ang);
+      const T = textItem(s, x - 200, y - 30, 400, 'small', p.colors?.[i] || 'white'); T.x = x - T.w / 2; T.y = y - T.h / 2; parts.push({ it: T, wt: wtText(s) });
+      ANCH[`${name}.${i}`] = T;
+      const a0 = ang + .32, a1 = ang + 2 * Math.PI / n - .32, arc = Array.from({ length: 17 }, (_, j) => { const t = a0 + (a1 - a0) * j / 16; return [cx + R * .95 * Math.cos(t), cy + R * .7 * Math.sin(t)]; });
+      const e = arc[arc.length - 1], q = arc[arc.length - 3];
+      parts.push({ it: strokeItem([arc, ...arrowPolys(q[0], q[1], e[0], e[1], 24).slice(1)], 'dim', 5), wt: .5 });
+    });
+    if (p.center) { const T = textItem(p.center, cx - 200, cy - 30, 400, 'label', p.centerColor || 'green'); T.x = cx - T.w / 2; parts.push({ it: T, wt: wtText(p.center) }); }
+    return parts;
+  },
+  pyramid(P, a, p) {
+    const L = p.levels, n = L.length, hh = p.levelH || 96, box = claimFull(P, n * hh + 20), cx = box.x + box.w / 2, base = Math.min(box.w, 1300), parts = [], name = a.name || 'pyr';
+    L.forEach((s, i) => {
+      const y = box.y + i * hh, wTop = base * (i + .25) / n, wBot = base * (i + 1.25) / n;
+      parts.push({ it: strokeItem([[[cx - wTop / 2, y], [cx + wTop / 2, y], [cx + wBot / 2, y + hh], [cx - wBot / 2, y + hh], [cx - wTop / 2, y]]], 'white', 5), wt: .4 });
+      const T = textItem(s, cx - wBot / 2, y + 16, wBot, 'small', p.colors?.[i] || 'white'); T.x = cx - T.w / 2; parts.push({ it: T, wt: wtText(s) });
+      ANCH[`${name}.${i}`] = T;
+    });
+    return parts;
+  },
+  flow(P, a, p) {
+    const n = p.steps.length, gap = 70, box = claimFull(P, p.height || 170), bw = (box.w - gap * (n - 1)) / n, parts = [], name = a.name || 'flow';
+    p.steps.forEach((s, i) => {
+      const x = box.x + i * (bw + gap);
+      parts.push({ it: strokeItem([rrect(x, box.y, bw, (p.height || 170) - 10, 20)], p.boxColor || 'sky', 5), wt: .35 });
+      const T = textItem(s, x + 14, box.y + 20, bw - 28, 'table', 'white'); T.x = x + (bw - T.w) / 2; parts.push({ it: T, wt: wtText(s) });
+      ANCH[`${name}.${i}`] = { x, y: box.y, w: bw, h: (p.height || 170) - 10 };
+      if (i < n - 1) parts.push({ it: strokeItem(arrowPolys(x + bw + 8, box.y + 80, x + bw + gap - 8, box.y + 80, 20), 'orange', 5), wt: .25 });
+    });
+    return parts;
+  },
+  stack_layers(P, a, p) {
+    const L = p.layers, n = L.length, hh = p.layerH || 92, box = claimFull(P, n * hh), parts = [], name = a.name || 'layers';
+    L.forEach(([nm, sub], i) => {          // listed bottom→top
+      const y = box.y + (n - 1 - i) * hh;
+      parts.push({ it: strokeItem([line(box.x, y + hh, box.x + box.w, y + hh, 30)], 'dim', 4), wt: .3 });
+      const T = textItem(nm, box.x + 10, y + 12, 520, 'label', p.colors?.[i] || 'sky'); parts.push({ it: T, wt: wtText(nm) });
+      if (sub) { const U = textItem(sub, box.x + 560, y + 18, box.w - 570, 'small', 'white'); parts.push({ it: U, wt: wtText(sub) }); }
+      ANCH[`${name}.${i}`] = { x: box.x, y, w: box.w, h: hh };
+    });
+    return parts;
+  },
+  traffic_light(P, a, p) {
+    const n = p.items.length, rowH = 96, k = place(P, a.col, n * rowH), cols3 = ['#E86A5F', '#F2C14E', '#7FC47F', '#93D5F2'], parts = [], name = a.name || 'lights';
+    p.items.forEach((s, i) => {
+      const y = k.y + i * rowH + 40; parts.push({ it: strokeItem([ellipse(k.x + 34, y, 26, 26, 0, 6.3, 28)], cols3[i % 4], 7), wt: .3 });
+      const T = textItem(s, k.x + 90, y - 34, k.w - 90, 'small', 'white'); parts.push({ it: T, wt: wtText(s) }); ANCH[`${name}.${i}`] = T;
+    });
+    return parts;
+  },
+  funnel(P, a, p) {
+    const n = p.steps.length, hh = 92, box = claimFull(P, n * hh), cx = box.x + box.w / 2, parts = [], name = a.name || 'funnel';
+    p.steps.forEach((s, i) => {
+      const y = box.y + i * hh, w0 = 1300 - i * (900 / n), w1 = 1300 - (i + 1) * (900 / n);
+      parts.push({ it: strokeItem([[[cx - w0 / 2, y], [cx + w0 / 2, y], [cx + w1 / 2, y + hh], [cx - w1 / 2, y + hh], [cx - w0 / 2, y]]], 'sky', 5), wt: .3 });
+      const T = textItem(s, cx - w1 / 2, y + 16, w1, 'small', 'white'); T.x = cx - T.w / 2; parts.push({ it: T, wt: wtText(s) }); ANCH[`${name}.${i}`] = T;
+    });
+    return parts;
+  },
+  hand_of_five(P, a, p) {
+    const k = claimFull(P, 420), cx = k.x + 330, cy = k.y + 330, parts = [], name = a.name || 'hand';
+    parts.push({ it: strokeItem([ellipse(cx, cy, 120, 90, 0, 6.3, 40)], 'white', 6), wt: .5 });
+    p.items.forEach((s, i) => {
+      const ang = -Math.PI * (0.92 - i * 0.21), x0 = cx + 120 * Math.cos(ang), y0 = cy + 90 * Math.sin(ang), x1 = cx + 260 * Math.cos(ang), y1 = cy + 260 * Math.sin(ang);
+      parts.push({ it: strokeItem([line(x0, y0, x1, y1, 8)], 'white', 6), wt: .25 });
+      const T = textItem(`${i + 1}. ${s}`, k.x + 700, k.y + i * 82, k.w - 700, 'small', p.colors?.[i] || 'sky'); parts.push({ it: T, wt: wtText(s) }); ANCH[`${name}.${i}`] = T;
+    });
+    return parts;
+  }
+};
+
+function build(tl) {
+  TL = tl; ITEMS = []; ANCH = {}; PANELS = []; BEATS = []; WARN = []; PULSES = [];
+  for (const sc of tl.scenes) {
+    const P = panelState(sc.panelIndex); P.idx = sc.panelIndex; if (sc.layout) P.layout = sc.layout;
+    for (const a of sc.actions) {
+      const push = it => { it.panel = sc.panelIndex; it.aid = a.id; ITEMS.push(it); return it; };
+      if (a.t === 'write') {
+        const st = a.style || 'body';
+        if (a.target === 'title') { const T = push(textItem(a.text, P.x0 + M, 70, W - 2 * M, a.style || 'heading', a.color || 'white')); T.t0 = a.t0; T.t1 = a.t1; ANCH.title = T; ANCH[a.id] = T; P.cur = [Math.max(P.cur[0], 70 + T.h + 40), Math.max(P.cur[1], 70 + T.h + 40)]; continue; }
+        const an = a.target && anchor(a.target);
+        let it;
+        if (an) { it = textItem(a.text, an.x, an.y, an.w, st === 'body' ? 'small' : st, a.color); if (an.center) it.x = an.center - it.w / 2; }
+        else if (a.pos) it = textItem(a.text, P.x0 + a.pos[0], a.pos[1], a.pos[2] || W - 2 * M, st, a.color);
+        else { const w0 = cols(P); const probe = textItem(a.text, 0, 0, (w0.two ? w0.cw : W - 2 * M), st, a.color); const k = place(P, a.col, probe.h); probe.x = k.x; probe.y = k.y; it = probe; }
+        if (a.target && !an) WARN.push(`unknown target ${a.target} in ${sc.id}`);
+        push(it); it.t0 = a.t0; it.t1 = a.t1; ANCH[a.id] = it;
+      } else if (a.t === 'draw') {
+        const f = PRIMS[a.prim]; if (!f) { WARN.push(`unknown prim ${a.prim}`); continue; }
+        const parts = f(P, a, a.params || {}); parts.forEach(p => push(p.it)); seqTimes(parts, a.t0, a.t1);
+      } else if (a.t === 'underline' || a.t === 'circle' || a.t === 'tick_cross' || a.t === 'arrow') {
+        const b = anchor(a.target); if (!b && a.t !== 'arrow') { WARN.push(`unknown target ${a.target} in ${sc.id}`); continue; }
+        let polys;
+        if (a.t === 'underline') polys = [line(b.x - 6, b.y + b.h + 4, b.x + b.w + 6, b.y + b.h + 8, 20)];
+        else if (a.t === 'circle') polys = [ellipse(b.x + b.w / 2, b.y + b.h / 2, b.w / 2 + 30, b.h / 2 + 22)];
+        else if (a.t === 'tick_cross') { const x = b.x + b.w + 26, y = b.y + b.h / 2; polys = a.mark === 'cross' ? [line(x, y - 22, x + 44, y + 22, 6), line(x + 44, y - 22, x, y + 22, 6)] : [[[x, y], [x + 16, y + 22], [x + 50, y - 26]]]; }
+        else { const A = anchor(a.from), B = anchor(a.to); if (!A || !B) { WARN.push(`arrow target missing ${a.from}/${a.to}`); continue; }
+          const [x0, y0] = [A.x + A.w / 2, A.y + A.h + 6], [x1, y1] = [B.x + B.w / 2, B.y - 8]; polys = arrowPolys(x0, y0, x1, y1); }
+        const it = push(strokeItem(polys, a.color || (a.t === 'tick_cross' ? (a.mark === 'cross' ? 'pink' : 'green') : 'pink'), a.t === 'circle' ? 6 : 7)); it.t0 = a.t0; it.t1 = a.t1; ANCH[a.id] = it;
+      } else if (a.t === 'stamp') {
+        const b = anchor(a.target) || { x: P.x0 + W - 380, y: 70, w: 0, h: 0 };
+        const room = b.x + b.w + 330 < P.x0 + W - M;
+        const cx = room ? b.x + b.w + 170 : P.x0 + W - M - 150, cy = room ? Math.max(110, b.y + 10) : 118;   // never on top of text
+        const it = push(strokeItem([ellipse(cx, cy, 140, 54, 0, 6.3, 48)], 'pink', 6)); it.t0 = a.t0; it.t1 = a.t0 + .35; it.pop = true;
+        const T = push(textItem(a.text || '★ must know', cx - 125, cy - 30, 400, 'table', 'pink')); T.x = cx - T.w / 2; T.t0 = a.t0 + .1; T.t1 = a.t0 + .4; T.pop = true;
+      } else if (a.t === 'counter') {
+        const k = a.pos ? { x: P.x0 + a.pos[0], y: a.pos[1] } : place(P, a.col, STY[a.style || 'big'].size * 1.1);
+        const it = push(textItem(a.text || String(a.to), k.x, k.y, 900, a.style || 'big', a.color || 'orange')); it.t0 = a.t0; it.t1 = a.t1; it.counter = { from: a.from || 0, to: a.to, prefix: a.prefix || '', suffix: a.suffix || '', style: a.style || 'big' }; ANCH[a.id] = it;
+      } else if (a.t === 'pulse') {
+        const b = anchor(a.target); if (b && b.img) PULSES.push({ it: b, t0: a.t0, t1: a.t1 });
+      } else if (a.t === 'recall_beat') {
+        BEATS.push({ t0: a.t0, t1: a.t1, prompt: a.prompt || '', panel: sc.panelIndex });
+      }
+    }
+  }
+  // erase events: everything created before an erase disappears as the eraser passes
+  for (const e of tl.erases || []) for (const it of ITEMS) if (it.t0 < e.t0 && it.erased == null) it.erased = e;
+  BEATS.forEach(b => { b.img = textItem('pause & recall' + (b.prompt ? ' — ' + b.prompt : ''), 0, 0, 1100, 'small', 'pink').img; });
+  return { items: ITEMS.length, warnings: WARN };
+}
+
+/* ---------- camera ---------- */
+function camX(t) {
+  let x = 0; for (const p of TL.pans) { if (t >= p.t1) x = p.to * W; else if (t > p.t0) { x = p.from * W + (p.to - p.from) * W * ease((t - p.t0) / (p.t1 - p.t0)); break; } else break; }
+  return x;
+}
+
+/* ---------- frame ---------- */
+let lastKey = null;
+function frameKey(t) {
+  const parts = [Math.round(camX(t))];
+  for (const it of ITEMS) {
+    if (t < it.t0) continue;
+    const p = it.t1 > it.t0 ? clamp((t - it.t0) / (it.t1 - it.t0)) : 1;
+    let e = 'n'; if (it.erased) { const q = clamp((t - it.erased.t0) / (it.erased.t1 - it.erased.t0)); e = q >= 1 ? 'g' : q > 0 ? Math.round(q * 300) : 'n'; }
+    if (p < 1 || (e !== 'n' && e !== 'g')) parts.push(it.aid + ':' + Math.round(p * 400) + ':' + e);
+    else parts.push(e === 'g' ? 'G' : 'D');
+  }
+  for (const b of BEATS) if (t >= b.t0 - .3 && t <= b.t1 + .5) parts.push('b' + Math.round((t - b.t0) * 24));
+  for (const e of TL.erases || []) if (t >= e.t0 && t <= e.t1) parts.push('e' + Math.round(t * 24));
+  for (const u of PULSES) if (t >= u.t0 && t <= u.t1) parts.push('u' + Math.round(t * 24));
+  return parts.join('|');
+}
+function drawItem(it, p) {
+  const sx = (it.x - 4 / S) * S, sy = (it.y - 4 / S) * S;
+  if (it.pop) { const k = .6 + .4 * ease(p); ctx.save(); ctx.globalAlpha = clamp(p * 2); ctx.translate(sx + it.img.width / 2, sy + it.img.height / 2); ctx.scale(k, k); ctx.drawImage(it.img, -it.img.width / 2, -it.img.height / 2); ctx.restore(); return; }
+  if (p >= 1) { ctx.drawImage(it.img, sx, sy); return; }
+  if (it.counter) { const c = it.counter, v = c.from + (c.to - c.from) * ease(p), txt = c.prefix + (Number.isInteger(c.to) ? Math.round(v).toLocaleString('en-IN') : v.toFixed(1)) + c.suffix;
+    ctx.save(); ctx.font = fontOf(STY[c.style]); ctx.fillStyle = it.color; ctx.scale(S, S); ctx.fillText(txt, it.x, it.y + STY[c.style].size * .95); ctx.restore(); return; }
+  ctx.save(); ctx.beginPath();
+  if (it.kind === 'text') {                 // reveal line by line, left→right, proportional to characters
+    const tot = it.lines.reduce((s, l) => s + l.text.length, 0) || 1; let chars = p * tot, edge = null;
+    it.lines.forEach((l, i) => {
+      if (chars <= 0) return; const f = clamp(chars / Math.max(1, l.text.length)); chars -= l.text.length;
+      const yy = it.y + i * it.lh; ctx.rect((it.x - 6) * S, (yy - 4) * S, (l.w * f + 8) * S, (it.lh + 10) * S);
+      if (f < 1) edge = [it.x + l.w * f, yy + it.lh * .6];
+    });
+    ctx.clip(); ctx.drawImage(it.img, sx, sy); ctx.restore();
+    if (edge) dust(edge[0], edge[1], hash(it.aid) + Math.round(p * 997));
+    return;
+  }
+  // stroke: thick partial polyline as mask
+  const target = it.len * p; let acc = 0;
+  ctx.lineWidth = (it.width + 16) * S; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
+  const m = document.createElement('canvas'); m.width = it.img.width; m.height = it.img.height; const g = m.getContext('2d');
+  g.lineCap = g.lineJoin = 'round'; g.lineWidth = (it.width + 16) * S; g.strokeStyle = '#000'; g.translate(4 - it.x * S, 4 - it.y * S); let edge = null;
+  for (const poly of it.polys) {
+    if (acc >= target) break; g.beginPath(); g.moveTo(poly[0][0] * S, poly[0][1] * S);
+    for (let i = 1; i < poly.length; i++) {
+      const [x0, y0] = poly[i - 1], [x1, y1] = poly[i], d = Math.hypot(x1 - x0, y1 - y0);
+      if (acc + d >= target) { const f = (target - acc) / d; const ex = x0 + (x1 - x0) * f, ey = y0 + (y1 - y0) * f; g.lineTo(ex * S, ey * S); edge = [ex, ey]; acc = target; break; }
+      g.lineTo(x1 * S, y1 * S); acc += d;
+    }
+    g.stroke();
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-in'; g.drawImage(it.img, 0, 0);
+  ctx.restore(); ctx.drawImage(m, sx, sy);
+  if (edge) dust(edge[0], edge[1], hash(it.aid) + Math.round(p * 997));
+}
+function dust(x, y, seed) {
+  const r = rng(seed); ctx.save(); ctx.fillStyle = 'rgba(240,238,230,.55)';
+  for (let i = 0; i < 9; i++) ctx.fillRect((x + (r() - .3) * 26) * S, (y + r() * 34) * S, 1.4, 1.4);
+  ctx.restore();
+}
+function renderFrame(t) {
+  const cx = camX(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const off = ((cx * S) % BOARD.width + BOARD.width) % BOARD.width;
+  ctx.drawImage(BOARD, -off, 0); ctx.drawImage(BOARD, BOARD.width - off, 0);
+  ctx.setTransform(1, 0, 0, 1, -cx * S, 0);
+  const vis0 = cx - 40, vis1 = cx + W + 40;
+  for (const it of ITEMS) {
+    if (t < it.t0 || it.x + it.w < vis0 || it.x > vis1) continue;
+    const p = it.t1 > it.t0 ? clamp((t - it.t0) / (it.t1 - it.t0)) : 1;
+    if (it.erased && t >= it.erased.t0) {
+      const q = clamp((t - it.erased.t0) / (it.erased.t1 - it.erased.t0)), ex = cx + q * (W + 300) - 150;
+      if (it.x + it.w < ex) { ctx.globalAlpha = .05; ctx.drawImage(it.img, (it.x - 4 / S) * S, (it.y - 4 / S) * S); ctx.globalAlpha = 1; continue; }   // ghost residue
+      if (it.x < ex) { ctx.save(); ctx.beginPath(); ctx.rect(ex * S, 0, (it.x + it.w - ex + 10) * S, OUT_H); ctx.clip(); drawItem(it, p); ctx.restore(); continue; }
+    }
+    drawItem(it, p);
+  }
+  for (const u of PULSES) if (t >= u.t0 && t <= u.t1 && !(u.it.erased && t >= u.it.erased.t0)) {   // idle pulse (no freeze > 4 s)
+    ctx.globalAlpha = .45 * Math.sin(Math.PI * (t - u.t0) / (u.t1 - u.t0)); ctx.drawImage(u.it.img, (u.it.x - 4 / S) * S, (u.it.y - 4 / S) * S); ctx.globalAlpha = 1;
+  }
+  for (const e of TL.erases || []) if (t >= e.t0 && t <= e.t1) {      // the eraser itself
+    const q = clamp((t - e.t0) / (e.t1 - e.t0)), ex = cx + q * (W + 300) - 150;
+    const gr = ctx.createLinearGradient((ex - 260) * S, 0, ex * S, 0); gr.addColorStop(0, 'rgba(200,205,195,0)'); gr.addColorStop(1, 'rgba(200,205,195,.10)');
+    ctx.fillStyle = gr; ctx.fillRect((ex - 260) * S, 0, 260 * S, OUT_H);
+    const ey = H / 2 + Math.sin(q * 18) * 260;
+    ctx.fillStyle = '#6B5B4A'; ctx.fillRect((ex - 60) * S, (ey - 110) * S, 120 * S, 220 * S); ctx.fillStyle = '#C9C1B4'; ctx.fillRect((ex - 60) * S, (ey - 110) * S, 26 * S, 220 * S);
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  for (const b of BEATS) if (t >= b.t0 - .3 && t <= b.t1 + .5) {     // "pause & recall" tag (screen-fixed)
+    const a = t < b.t0 ? clamp((t - b.t0 + .3) / .3) : t > b.t1 ? 1 - clamp((t - b.t1) / .5) : 1;
+    const x = OUT_W - b.img.width - 40, y = OUT_H - b.img.height - 34;
+    ctx.globalAlpha = a; ctx.drawImage(b.img, x, y);
+    const f = clamp((t - b.t0) / (b.t1 - b.t0)); ctx.strokeStyle = C.pink; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x - 26, y + b.img.height / 2, 14, -Math.PI / 2, -Math.PI / 2 + f * 2 * Math.PI); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+async function load(tl) {
+  if (tl.width) { OUT_W = tl.width; OUT_H = tl.height; S = OUT_W / W; cv.width = OUT_W; cv.height = OUT_H; }
+  await Promise.all(['400 40px Kalam', '700 40px Kalam', '40px Caveat', '40px NotoMath', '40px PatrickHand'].map(f => document.fonts.load(f)));
+  makeTextures(); lastKey = null; return build(tl);
+}
+/* returns [{dup:true}|{jpg:dataURL}] for frames f0..f0+n-1 */
+function renderBatch(f0, n, fps, q = .9) {
+  const out = [];
+  for (let f = f0; f < f0 + n; f++) {
+    const t = f / fps, key = frameKey(t);
+    if (key === lastKey) { out.push(0); continue; }
+    lastKey = key; renderFrame(t); out.push(cv.toDataURL('image/jpeg', q));
+  }
+  return out;
+}
+window.load = load; window.renderFrame = renderFrame; window.renderBatch = renderBatch;
+</script></body></html>

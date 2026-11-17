@@ -1,0 +1,125 @@
+{
+ "M01": {
+  "title": "Foundations of Environmental Studies",
+  "cards": 18,
+  "mcq": 7,
+  "bonus": 1,
+  "video_min": 6
+ },
+ "M02": {
+  "title": "Earth as a Life-Support System",
+  "cards": 24,
+  "mcq": 10,
+  "bonus": 2,
+  "video_min": 7
+ },
+ "M03": {
+  "title": "Environmental Impact Assessment (EIA)",
+  "cards": 22,
+  "mcq": 10,
+  "bonus": 2,
+  "video_min": 6
+ },
+ "M04": {
+  "title": "Indian Environmental Laws & Policy",
+  "cards": 60,
+  "mcq": 24,
+  "bonus": 6,
+  "video_min": 15
+ },
+ "M05": {
+  "title": "International Climate Treaties: Kyoto & Paris",
+  "cards": 30,
+  "mcq": 14,
+  "bonus": 4,
+  "video_min": 9
+ },
+ "M06": {
+  "title": "Sustainable Development & the 17 SDGs",
+  "cards": 28,
+  "mcq": 10,
+  "bonus": 2,
+  "video_min": 6
+ },
+ "M07": {
+  "title": "Climate Change, Global Warming & Carbon Footprint",
+  "cards": 36,
+  "mcq": 16,
+  "bonus": 3,
+  "video_min": 11
+ },
+ "M08": {
+  "title": "Technology for Environmental Monitoring",
+  "cards": 8,
+  "mcq": 4,
+  "bonus": 0,
+  "video_min": 3
+ },
+ "M09": {
+  "title": "Green Energy Technologies",
+  "cards": 30,
+  "mcq": 14,
+  "bonus": 3,
+  "video_min": 9
+ },
+ "M10": {
+  "title": "Ecosystem: Structure, Energy Flow, Cycles & Succession",
+  "cards": 40,
+  "mcq": 18,
+  "bonus": 4,
+  "video_min": 12
+ },
+ "M11": {
+  "title": "Biodiversity & Species",
+  "cards": 26,
+  "mcq": 12,
+  "bonus": 2,
+  "video_min": 7
+ },
+ "M12": {
+  "title": "Biodiversity Conservation Strategies",
+  "cards": 26,
+  "mcq": 12,
+  "bonus": 2,
+  "video_min": 7
+ },
+ "M13": {
+  "title": "Genetically Modified (GM) Crops",
+  "cards": 14,
+  "mcq": 8,
+  "bonus": 1,
+  "video_min": 4
+ },
+ "M14": {
+  "title": "Environmental Hazards & Disaster Management",
+  "cards": 28,
+  "mcq": 14,
+  "bonus": 3,
+  "video_min": 9
+ },
+ "M15": {
+  "title": "Pollution: Water, Air, Soil, Noise, Thermal",
+  "cards": 36,
+  "mcq": 18,
+  "bonus": 3,
+  "video_min": 11
+ },
+ "M16": {
+  "title": "Water Management & Conservation",
+  "cards": 10,
+  "mcq": 4,
+  "bonus": 1,
+  "video_min": 3
+ },
+ "M17": {
+  "title": "Circular Economy & Solid Waste Management",
+  "cards": 14,
+  "mcq": 5,
+  "bonus": 1,
+  "video_min": 4
+ },
+ "_intro_finale_min": {
+  "intro": 2,
+  "finale": 5
+ }
+}
