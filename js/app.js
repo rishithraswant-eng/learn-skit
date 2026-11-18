@@ -731,6 +731,7 @@ function initHeroParallax() {
 
 function publicLanding() {
   setNav(null);
+  if (!view.querySelector('.hero-atmosphere')) {
   view.innerHTML = `
     <!-- Hero Section: "The Atmosphere is the World" -->
     <section class="hero-atmosphere" aria-labelledby="hero-heading">
@@ -832,7 +833,7 @@ function publicLanding() {
           <div class="bento-card bento-card-lav bento-card-wide">
             <div class="bento-card-head">
               <h3 class="bento-card-title">Flashcards</h3>
-              <p class="bento-card-desc">Active recall cards with formulas, key definitions, and trap callouts.</p>
+              <p class="bento-card-desc">Active recall EVS flashcards with formulas, key definitions, and trap callouts.</p>
             </div>
             <div class="bento-visual" aria-hidden="true">
               <svg viewBox="0 0 320 180" focusable="false">
@@ -861,7 +862,7 @@ function publicLanding() {
           <div class="bento-card bento-card-blue bento-card-wide">
             <div class="bento-card-head">
               <h3 class="bento-card-title">Predicted MCQs</h3>
-              <p class="bento-card-desc">Exam-style multiple choice questions mirroring FAT patterns with breakdowns.</p>
+              <p class="bento-card-desc">Exam-style predicted MCQs mirroring FAT patterns with breakdowns.</p>
             </div>
             <div class="bento-visual" aria-hidden="true">
               <svg viewBox="0 0 320 180" focusable="false">
@@ -1013,7 +1014,7 @@ function publicLanding() {
                   </svg>
                 </div>
                 <h3 class="how-step-title">Pick a subject</h3>
-                <p class="how-step-desc">Select Environmental Studies or Quantitative &amp; Qualitative Skills.</p>
+                <p class="how-step-desc">Select Environmental Studies or dive into Quantitative and Qualitative Skills practice.</p>
               </div>
             </div>
 
@@ -1116,13 +1117,14 @@ function publicLanding() {
             <span class="landing-footer-tag">Independent FAT revision study tool</span>
           </div>
           <nav class="landing-footer-links" aria-label="Legal">
-            <a href="#/privacy" class="landing-footer-link">Privacy</a>
-            <a href="#/terms" class="landing-footer-link">Terms</a>
+            <a href="/privacy" class="landing-footer-link">Privacy</a>
+            <a href="/terms" class="landing-footer-link">Terms</a>
           </nav>
         </div>
       </div>
     </footer>
   `;
+  }
 
   $$('[data-action="google-signin"]', view).forEach(btn => {
     btn.onclick = () => {

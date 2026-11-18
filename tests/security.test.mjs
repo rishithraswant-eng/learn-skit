@@ -12,7 +12,7 @@ test('admin requests use modern secret keys without treating them as JWTs',()=>{
 
 test('deploy output contains only public assets and a content-free catalogue', async () => {
   const files = async dir => (await readdir(new URL('../'+dir,import.meta.url),{withFileTypes:true})).map(e=>e.name);
-  assert.deepEqual((await files('dist')).sort(),['css','icons','index.html','js','manifest.webmanifest','sw.js']);
+  assert.deepEqual((await files('dist')).sort(),['apple-icon.png','css','favicon.ico','icon.png','icon.svg','icons','index.html','js','manifest.webmanifest','opengraph-image.png','privacy.html','robots.txt','sitemap.xml','sw.js','terms.html']);
   assert.deepEqual((await files('dist/js')).sort(),['access.js','app.js','config.js','data.js','private-cache.js','study-core.js','theme.js','vendor','workspace.js']);
   const context = {window:{}}; vm.runInNewContext(await read('dist/js/data.js'),context);
   assert.equal(context.window.SUBJECTS.length,2);

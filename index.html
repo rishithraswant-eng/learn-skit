@@ -1,17 +1,30 @@
 <!doctype html>
-<html lang="en-IN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>learn-skit — Revise what the exam actually asks</title>
-<meta name="description" content="Free FAT revision for EVS and Quantitative & Qualitative Skills. Flashcards, predicted MCQs, and 6-minute cheat sheets.">
+<title>learn-skit: FAT revision for EVS, Quant &amp; Qual</title>
+<meta name="description" content="Revise for FAT with flashcards, practice MCQs with answers shown under each question, and short notes for EVS, Quantitative and Qualitative Skills.">
+<meta name="keywords" content="learn-skit, FAT revision, EVS flashcards, quantitative skills practice, qualitative skills, VIT revision">
+<link rel="canonical" href="https://learn-skit.vercel.app/">
 <meta name="theme-color" content="#F6F5FD">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="index, follow" id="meta-robots">
 <meta property="og:type" content="website">
-<meta property="og:title" content="learn-skit — FAT revision for EVS, Quant &amp; Qual">
-<meta property="og:description" content="Revise what the exam actually asks. Flashcards, predicted MCQs, and six-minute cheat sheets.">
-<meta property="og:image" content="icons/app-512.png">
+<meta property="og:site_name" content="learn-skit">
+<meta property="og:title" content="learn-skit: FAT revision for EVS, Quant &amp; Qual">
+<meta property="og:description" content="Revise for FAT with flashcards, practice MCQs with answers shown under each question, and short notes for EVS, Quantitative and Qualitative Skills.">
+<meta property="og:url" content="https://learn-skit.vercel.app/">
+<meta property="og:locale" content="en_IN">
+<meta property="og:image" content="https://learn-skit.vercel.app/opengraph-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="learn-skit — FAT revision for EVS, Quant &amp; Qual">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="learn-skit: FAT revision for EVS, Quant &amp; Qual">
+<meta name="twitter:description" content="Revise for FAT with flashcards, practice MCQs with answers shown under each question, and short notes for EVS, Quantitative and Qualitative Skills.">
+<meta name="twitter:image" content="https://learn-skit.vercel.app/opengraph-image.png">
+<meta name="twitter:image:alt" content="learn-skit — FAT revision for EVS, Quant &amp; Qual">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,8 +32,32 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/workspace.css">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/app-192.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3c7 0 13 5 13 12s-5 14-13 14S3 23 3 16 9 3 16 3z' fill='%23F5B69E'/%3E%3Ccircle cx='12' cy='12' r='5' fill='%238DB9F0'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="apple-icon.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon.png" type="image/png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://learn-skit.vercel.app/#website",
+      "name": "learn-skit",
+      "url": "https://learn-skit.vercel.app/",
+      "description": "Revise for FAT with flashcards, practice MCQs with answers shown under each question, and short notes for EVS, Quantitative and Qualitative Skills.",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://learn-skit.vercel.app/#organization",
+      "name": "learn-skit",
+      "url": "https://learn-skit.vercel.app/",
+      "logo": "https://learn-skit.vercel.app/icons/app-512.png"
+    }
+  ]
+}
+</script>
 <script>
 (function(){
   try {
@@ -71,7 +108,618 @@
   </div>
 </header>
 
-<main id="view" tabindex="-1"></main>
+<main id="view" tabindex="-1">
+
+    <!-- Hero Section: "The Atmosphere is the World" -->
+    <section class="hero-atmosphere" aria-labelledby="hero-heading">
+      
+<div class="hero-scene-wrap" aria-hidden="true">
+<svg class="hero-atmosphere-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" overflow="hidden" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- SVG feTurbulence subtle grain overlay -->
+    <filter id="hero-grain" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise"/>
+      <feColorMatrix type="matrix" values="0.11 0 0 0 0.11   0 0.14 0 0 0.14   0 0 0.25 0 0.25   0 0 0 0.045 0"/>
+    </filter>
+
+    <!-- Depth blurs for distant background layers -->
+    <filter id="blur-mid" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.2"/>
+    </filter>
+
+    <!-- Soft drop shadow for foreground elements -->
+    <filter id="hero-shadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="3" dy="8" stdDeviation="8" flood-color="var(--illustration-stroke)" flood-opacity="0.10"/>
+    </filter>
+
+    <!-- Reusable subtle star sparkle -->
+    <g id="star-sparkle">
+      <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="var(--hero-sparkle, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+    </g>
+    <g id="star-gold">
+      <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="var(--hero-star-gold, var(--accent))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+    </g>
+    <g id="star-lavender">
+      <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="var(--hero-star-lav, var(--lav-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+    </g>
+  </defs>
+
+  <!-- 1. The 5 Atmospheric stacked arcs above Earth horizon -->
+  <!-- Layer 5: Exosphere Arc (600+ km) -->
+  <path d="M -500 710 C 0 450, 400 380, 720 380 C 1040 380, 1440 450, 1940 710 L 1940 950 L -500 950 Z"
+        fill="var(--arc-5)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 690 C 0 454, 400 383, 720 383 C 1040 383, 1440 454, 1840 690"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.6)"/>
+
+  <!-- Layer 4: Thermosphere Arc (85-600 km) -->
+  <path d="M -500 765 C 0 530, 400 455, 720 455 C 1040 455, 1440 530, 1940 765 L 1940 950 L -500 950 Z"
+        fill="var(--arc-4)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 748 C 0 534, 400 458, 720 458 C 1040 458, 1440 534, 1840 748"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.55)"/>
+
+  <!-- Layer 3: Mesosphere Arc (50-85 km) -->
+  <path d="M -500 820 C 0 615, 400 535, 720 535 C 1040 535, 1440 615, 1940 820 L 1940 950 L -500 950 Z"
+        fill="var(--arc-3)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 804 C 0 618, 400 538, 720 538 C 1040 538, 1440 618, 1840 804"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.55)"/>
+
+  <!-- Layer 2: Stratosphere Arc (12-50 km, Ozone Layer) -->
+  <path d="M -500 870 C 0 700, 400 620, 720 620 C 1040 620, 1440 700, 1940 870 L 1940 950 L -500 950 Z"
+        fill="var(--arc-2)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 855 C 0 703, 400 623, 720 623 C 1040 623, 1440 703, 1840 855"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.6)"/>
+
+  <!-- Layer 1: Troposphere Arc (0-12 km, Weather & Life) -->
+  <path d="M -500 920 C 0 790, 400 705, 720 705 C 1040 705, 1440 790, 1940 920 L 1940 950 L -500 950 Z"
+        fill="var(--arc-1)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 906 C 0 793, 400 708, 720 708 C 1040 708, 1440 793, 1840 906"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.65)"/>
+
+  <!-- Earth Horizon Surface -->
+  <path d="M -500 965 C 0 865, 400 782, 720 782 C 1040 782, 1440 865, 1940 965 L 1940 1020 L -500 1020 Z"
+        fill="var(--arc-earth)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M -400 952 C 0 868, 400 785, 720 785 C 1040 785, 1440 868, 1840 952"
+        stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="var(--arc-highlight-opacity, 0.7)"/>
+
+  <!-- Earth Continent landforms -->
+  <g class="earth-continents">
+    <path d="M 320 860 C 370 820, 440 815, 490 835 C 520 848, 550 840, 580 820 C 600 810, 640 815, 650 835 C 640 870, 560 885, 480 890 C 380 895, 330 880, 320 860 Z"
+          fill="var(--arc-land)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+    <path d="M 850 825 C 890 810, 950 815, 1000 840 C 1040 860, 1090 855, 1130 875 C 1090 905, 990 910, 920 890 C 860 870, 840 845, 850 825 Z"
+          fill="var(--arc-land)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+    <path d="M 410 840 L 425 828 L 440 842" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 438 842 L 450 832 L 464 845" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Atmospheric layer metadata tags -->
+  <g class="desktop-only-obj hero-layer-labels" fill="var(--illustration-stroke)" opacity="0.70" font-family="'IBM Plex Sans', sans-serif" font-size="9" letter-spacing="1.5px">
+    <text x="210" y="440">EXOSPHERE · 600+ KM</text>
+    <text x="1170" y="475">THERMOSPHERE · 85-600 KM</text>
+    <text x="180" y="590">MESOSPHERE · 50-85 KM</text>
+    <text x="1210" y="675">STRATOSPHERE · 12-50 KM</text>
+    <text x="460" y="750">TROPOSPHERE · 0-12 KM</text>
+  </g>
+
+  <!-- Mascot: Friendly round astronaut learner peeking over the troposphere/earth arc -->
+  <g class="hero-drift-mascot parallax-mid">
+    <g transform="translate(950, 725)">
+      <line x1="0" y1="-32" x2="0" y2="-44" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="0" cy="-47" r="4.5" fill="var(--mascot-antenna, var(--blue))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="32" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M -22 -14 C -12 -26, 12 -26, 22 -14" stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="0.8"/>
+      <circle cx="-32" cy="2" r="5" fill="var(--hero-bubble-b, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="32" cy="2" r="5" fill="var(--hero-bubble-b, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M -22 -4 C -22 -18, 22 -18, 22 -4 C 22 14, -22 14, -22 -4 Z" fill="var(--text)"/>
+      <path d="M -15 -8 C -13 -13, -2 -14, 5 -12" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <circle cx="12" cy="-6" r="2" fill="var(--accent)"/>
+      <ellipse cx="-20" cy="24" rx="8" ry="6" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <ellipse cx="20" cy="24" rx="8" ry="6" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- 2. Floating Objects tied to the product -->
+  <!-- Object 1: Tilted Flashcard -->
+  <g class="hero-drift-1 parallax-near">
+    <g class="floating-flashcard-group" transform="translate(1080, 240) rotate(-6.5)" filter="url(#hero-shadow)">
+      <rect x="4" y="5" width="186" height="118" rx="16" fill="var(--illustration-fill-3)"/>
+      <rect x="0" y="0" width="186" height="118" rx="16" fill="var(--surface-raised, var(--surface))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <line x1="16" y1="2" x2="170" y2="2" stroke="#FFFFFF" stroke-width="2" opacity="0.9"/>
+      <rect x="14" y="14" width="86" height="18" rx="9" fill="var(--card-tag-bg, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+      <circle cx="23" cy="23" r="3" fill="var(--accent)"/>
+      <text x="32" y="26" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--card-tag-text, var(--accent-ink))" letter-spacing="0.5px">ACTIVE RECALL</text>
+      <text x="14" y="48" font-family="'Plus Jakarta Sans',sans-serif" font-size="10.5" font-weight="700" fill="var(--text)">Atmosphere layers?</text>
+      <text x="14" y="66" font-family="'DM Sans',sans-serif" font-size="8.8" font-weight="500" fill="var(--text-secondary)">1 Tropo → 2 Strato → 3 Meso</text>
+      <text x="14" y="80" font-family="'DM Sans',sans-serif" font-size="8.8" font-weight="500" fill="var(--text-secondary)">4 Thermo → 5 Exosphere</text>
+      <rect x="14" y="90" width="158" height="18" rx="6" fill="var(--bg-tint-lavender)"/>
+      <text x="20" y="102" font-family="'DM Sans',sans-serif" font-size="7.6" font-style="italic" fill="var(--text-muted)">Mnemonic: T-S-M-T-E</text>
+    </g>
+  </g>
+
+  <!-- Object 2: Faceted Mineral Crystal -->
+  <g class="hero-drift-3 parallax-near">
+    <g class="floating-crystal-group" transform="translate(230, 260)" filter="url(#hero-shadow)">
+      <polygon points="24,0 48,20 24,32 0,20" fill="var(--hero-crystal-1, var(--blue-100))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="0,20 24,32 18,62 0,40" fill="var(--hero-crystal-2, var(--lav))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="24,32 48,20 48,40 30,62" fill="var(--hero-crystal-3, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="18,62 24,32 30,62 24,68" fill="var(--hero-crystal-4, var(--blue-200))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="24,3 32,18 24,24" fill="#FFFFFF" opacity="0.65"/>
+    </g>
+  </g>
+
+  <!-- Object 3: Botanical Leaf -->
+  <g class="hero-drift-4 parallax-mid">
+    <g class="floating-leaf-group" transform="translate(1220, 560) rotate(22)" filter="url(#hero-shadow)">
+      <path d="M 0 46 C 0 16, 22 0, 48 0 C 48 30, 26 46, 0 46 Z" fill="var(--hero-leaf, var(--ok))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M 0 46 Q 22 24, 48 0" stroke="var(--illustration-stroke)" stroke-width="1.5" fill="none"/>
+      <line x1="16" y1="28" x2="10" y2="18" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
+      <line x1="28" y1="16" x2="22" y2="8" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
+      <line x1="22" y1="36" x2="30" y2="40" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M 6 36 C 10 18, 24 8, 42 4" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7"/>
+    </g>
+  </g>
+
+  <!-- Object 4: Water Droplet -->
+  <g class="hero-drift-5 parallax-near">
+    <g class="floating-droplet-group" transform="translate(290, 610)" filter="url(#hero-shadow)">
+      <path d="M 18 0 C 18 0, 36 22, 36 34 C 36 44, 28 52, 18 52 C 8 52, 0 44, 0 34 C 0 22, 18 0, 18 0 Z"
+            fill="var(--hero-droplet, var(--blue-200))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M 10 24 C 6 30, 6 38, 10 44" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+      <circle cx="24" cy="38" r="2.5" fill="#FFFFFF" opacity="0.6"/>
+    </g>
+  </g>
+
+  <!-- Object 5: Small Satellite -->
+  <g class="hero-drift-2 parallax-far desktop-only-obj">
+    <g class="floating-satellite-group" transform="translate(1240, 160) rotate(-10)" filter="url(#hero-shadow)">
+      <rect x="0" y="14" width="22" height="14" rx="2" fill="var(--hero-sat-panel, var(--blue))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <line x1="11" y1="14" x2="11" y2="28" stroke="var(--illustration-stroke)" stroke-width="1"/>
+      <rect x="25" y="10" width="24" height="22" rx="4" fill="var(--hero-sat-body, var(--surface))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="37" cy="21" r="5" fill="var(--hero-sat-core, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+      <rect x="52" y="14" width="22" height="14" rx="2" fill="var(--hero-sat-panel, var(--blue))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <line x1="63" y1="14" x2="63" y2="28" stroke="var(--illustration-stroke)" stroke-width="1"/>
+      <line x1="37" y1="10" x2="37" y2="2" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 31 2 C 31 -2, 43 -2, 43 2" stroke="var(--illustration-stroke)" stroke-width="1.5" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Object 6: MCQ Option Bubbles A / B / C / D -->
+  <!-- Option A -->
+  <g class="hero-drift-3 parallax-mid desktop-only-obj">
+    <g transform="translate(190, 480)" filter="url(#hero-shadow)">
+      <circle cx="20" cy="20" r="20" fill="var(--hero-bubble-a, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 8 16 C 12 8, 24 8, 30 12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.75"/>
+      <text x="20" y="25" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="14" font-weight="800" fill="var(--text)">A</text>
+    </g>
+  </g>
+
+  <!-- Option B: moved to 1090, 470 to keep well clear of headline "asks." -->
+  <g class="hero-drift-1 parallax-far desktop-only-obj">
+    <g transform="translate(1090, 470)" filter="url(#hero-shadow)">
+      <circle cx="18" cy="18" r="18" fill="var(--hero-bubble-b, var(--blue-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 8 14 C 12 8, 22 8, 28 12" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.7"/>
+      <text x="18" y="23" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="13" font-weight="800" fill="var(--text)">B</text>
+    </g>
+  </g>
+
+  <!-- Option C -->
+  <g class="hero-drift-5 parallax-far desktop-only-obj" filter="url(#blur-mid)" opacity="0.75">
+    <g transform="translate(360, 210)">
+      <circle cx="16" cy="16" r="16" fill="var(--hero-bubble-c, var(--lav-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <text x="16" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="12" font-weight="800" fill="var(--text)">C</text>
+    </g>
+  </g>
+
+  <!-- Option D -->
+  <g class="hero-drift-6 parallax-near">
+    <g class="floating-option-d-group" transform="translate(1040, 610)" filter="url(#hero-shadow)">
+      <circle cx="22" cy="22" r="22" fill="var(--hero-bubble-d, var(--ok))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <path d="M 10 16 C 14 10, 26 10, 32 14" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.8"/>
+      <text x="22" y="28" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="16" font-weight="800" fill="var(--hero-bubble-d-text, var(--ok-ink))">D</text>
+      <!-- Checked badge -->
+      <circle cx="36" cy="10" r="8.5" fill="var(--hero-d-badge, var(--ok-ink))" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+      <path d="M 33 10 L 35.5 12.5 L 39.5 7.5" stroke="var(--hero-d-check, var(--surface))" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Star sparkles at varying depths: mixed gold and pale lavender -->
+  <use href="#star-lavender" x="160" y="180" class="desktop-only-obj" filter="url(#blur-mid)" opacity="0.75"/>
+  <use href="#star-gold" x="1340" y="320" class="desktop-only-obj" opacity="0.85"/>
+  <use href="#star-lavender" x="420" y="680" class="desktop-only-obj" opacity="0.65"/>
+
+  <!-- SVG feTurbulence grain texture overlay -->
+  <rect width="100%" height="100%" filter="url(#hero-grain)" opacity="var(--grain-opacity, 0.045)" pointer-events="none"/>
+</svg>
+</div>
+
+      <div class="hero-backdrop" aria-hidden="true"></div>
+      <div class="hero-content">
+        <span class="hero-eyebrow">LEARN-SKIT · FAT REVISION</span>
+        <h1 id="hero-heading" class="hero-headline">Revise what the exam actually asks.</h1>
+        <p class="hero-subtext">Flashcards, predicted MCQs and 6-minute notes for EVS and Quant &amp; Qual.</p>
+        <div class="hero-cta-wrap">
+          <button type="button" class="hero-cta-pill" data-action="google-signin" aria-label="Begin revising with your Google account">
+            <span class="hero-cta-content">
+              <svg class="g" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+              <span class="hero-cta-label">Begin revising</span>
+            </span>
+            <span class="hero-cta-icon-box" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </span>
+          </button>
+          <span class="hero-cta-subnote">Free with your Google account</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Stats Band Section -->
+    <section class="landing-sec-stats scroll-fade-up" aria-label="Course numbers">
+      <div class="l-container">
+        <div class="stats-band">
+          <!-- Stat 1: 200+ MCQs -->
+          <div class="stat-cell">
+            <div class="stat-num-row">
+              <span class="stat-number num" data-target="200" data-suffix="+">200+</span>
+              <div class="stat-illu" aria-hidden="true">
+                <svg viewBox="0 0 36 36" width="36" height="36" focusable="false">
+                  <rect x="3" y="3" width="30" height="30" rx="10" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <path d="M 10 18 L 16 24 L 26 12" stroke="var(--ok-ink)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <path d="M 6 10 C 10 6, 20 6, 26 8" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.8"/>
+                </svg>
+              </div>
+            </div>
+            <span class="stat-label">Predicted core MCQs</span>
+          </div>
+
+          <div class="stat-divider" aria-hidden="true"></div>
+
+          <!-- Stat 2: 24 Cards per module -->
+          <div class="stat-cell">
+            <div class="stat-num-row">
+              <span class="stat-number num" data-target="24">24</span>
+              <div class="stat-illu" aria-hidden="true">
+                <svg viewBox="0 0 40 36" width="40" height="36" focusable="false">
+                  <rect x="14" y="3" width="22" height="26" rx="4" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(8 25 16)"/>
+                  <rect x="8" y="5" width="22" height="26" rx="4" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(-4 19 18)"/>
+                  <rect x="4" y="6" width="22" height="26" rx="4" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <line x1="8" y1="12" x2="22" y2="12" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round"/>
+                  <line x1="8" y1="17" x2="18" y2="17" stroke="var(--blue)" stroke-width="1.2" stroke-linecap="round"/>
+                  <line x1="8" y1="22" x2="14" y2="22" stroke="var(--blue)" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+            <span class="stat-label">Cards per module</span>
+          </div>
+
+          <div class="stat-divider" aria-hidden="true"></div>
+
+          <!-- Stat 3: 2 Full syllabus subjects -->
+          <div class="stat-cell">
+            <div class="stat-num-row">
+              <span class="stat-number num" data-target="2">2</span>
+              <div class="stat-illu" aria-hidden="true">
+                <svg viewBox="0 0 36 36" width="36" height="36" focusable="false">
+                  <circle cx="18" cy="18" r="14" fill="var(--blue-50)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <ellipse cx="18" cy="18" rx="7" ry="14" fill="none" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                  <line x1="4" y1="18" x2="32" y2="18" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                  <path d="M 7 11 Q 18 14 29 11" fill="none" stroke="var(--illustration-stroke)" stroke-width="1" stroke-dasharray="2 2"/>
+                  <path d="M 7 25 Q 18 22 29 25" fill="none" stroke="var(--illustration-stroke)" stroke-width="1" stroke-dasharray="2 2"/>
+                  <path d="M 9 9 C 13 6, 20 6, 25 8" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.8"/>
+                </svg>
+              </div>
+            </div>
+            <span class="stat-label">Full syllabus subjects</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Features Bento Grid -->
+    <section class="landing-sec scroll-fade-up" aria-labelledby="features-heading">
+      <div class="l-container">
+        <div class="landing-sec-header">
+          <h2 id="features-heading" class="landing-sec-heading">Everything needed to clear the FAT</h2>
+          <p class="landing-sec-subtext">Organized directly from the course decks into focused revision formats.</p>
+        </div>
+
+        <div class="features-bento-grid">
+          <!-- Card 1: Flashcards (Wide, Lavender tint) -->
+          <div class="bento-card bento-card-lav bento-card-wide">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Flashcards</h3>
+              <p class="bento-card-desc">Active recall EVS flashcards with formulas, key definitions, and trap callouts.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 320 180" focusable="false">
+                <!-- Stacked 3 tilted cards -->
+                <rect x="50" y="32" width="220" height="124" rx="14" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(-6 160 94)"/>
+                <rect x="50" y="32" width="220" height="124" rx="14" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" transform="rotate(4 160 94)"/>
+                <!-- Front surface card -->
+                <g transform="rotate(-1.5 160 94)">
+                  <rect x="50" y="28" width="220" height="126" rx="14" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                  <!-- Card badge -->
+                  <rect x="66" y="44" width="76" height="16" rx="8" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="104" y="55.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8.5" font-weight="700" fill="var(--text)" text-anchor="middle">KEY CONCEPT</text>
+                  <!-- Formula box -->
+                  <rect x="66" y="68" width="188" height="34" rx="8" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="160" y="90" font-family="'IBM Plex Sans',monospace" font-size="13" font-weight="600" fill="var(--text)" text-anchor="middle">BOD₅ = (DO₀ − DO₅) × P</text>
+                  <!-- Card footer chips -->
+                  <circle cx="74" cy="128" r="4" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="84" y="123" width="56" height="10" rx="5" fill="var(--blue-50)"/>
+                  <text x="240" y="132" font-family="'IBM Plex Sans',sans-serif" font-size="10" font-weight="600" fill="var(--text-muted)" text-anchor="end">Card 04 / 24</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 2: Predicted MCQs (Wide, Blue tint) -->
+          <div class="bento-card bento-card-blue bento-card-wide">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Predicted MCQs</h3>
+              <p class="bento-card-desc">Exam-style predicted MCQs mirroring FAT patterns with breakdowns.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 320 180" focusable="false">
+                <!-- 4 A/B/C/D option bubbles -->
+                <!-- Option A -->
+                <rect x="25" y="16" width="270" height="32" rx="10" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="32" r="9" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="36" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">A</text>
+                <rect x="62" y="27" width="160" height="9" rx="4.5" fill="var(--lav)"/>
+
+                <!-- Option B -->
+                <rect x="25" y="54" width="270" height="32" rx="10" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="70" r="9" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="74" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">B</text>
+                <rect x="62" y="65" width="130" height="9" rx="4.5" fill="var(--lav)"/>
+
+                <!-- Option C -->
+                <rect x="25" y="92" width="270" height="32" rx="10" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="108" r="9" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="112" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--text)" text-anchor="middle">C</text>
+                <rect x="62" y="103" width="180" height="9" rx="4.5" fill="var(--lav)"/>
+
+                <!-- Option D (HIGHLIGHTED MINT CORRECT ANSWER) -->
+                <rect x="25" y="130" width="270" height="34" rx="10" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="43" cy="147" r="9" fill="var(--ok-ink)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <text x="43" y="151" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="var(--surface)" text-anchor="middle">D</text>
+                <text x="62" y="151" font-family="'DM Sans',sans-serif" font-size="11" font-weight="700" fill="var(--ok-ink)">Biochemical oxygen demand (BOD)</text>
+                <!-- Checked badge -->
+                <circle cx="275" cy="147" r="7.5" fill="var(--ok-ink)"/>
+                <path d="M 271.5 147 L 274 149.5 L 278.5 144" stroke="var(--surface)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 3: Six-minute Cheat Sheets (Compact, Peach tint) -->
+          <div class="bento-card bento-card-peach bento-card-compact">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Six-minute cheat sheets</h3>
+              <p class="bento-card-desc">High-yield summaries condensing whole modules into 6-minute reads.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 280 150" focusable="false">
+                <!-- Document sheet -->
+                <g transform="translate(45, 12)">
+                  <path d="M 0 0 L 150 0 L 190 40 L 190 126 C 190 130 186 134 182 134 L 8 134 C 4 134 0 130 0 126 Z" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                  <path d="M 150 0 L 150 40 L 190 40" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                  <!-- Badge "6 MIN" -->
+                  <rect x="18" y="18" width="70" height="18" rx="9" fill="var(--accent)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                  <circle cx="28" cy="27" r="4.5" fill="none" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <polyline points="28,24 28,27 30.5,27" stroke="var(--illustration-stroke)" stroke-width="1" stroke-linecap="round"/>
+                  <text x="56" y="30.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="9" font-weight="800" fill="var(--text)" text-anchor="middle">6 MIN READ</text>
+                  <!-- Fake summary lines with pastel dots -->
+                  <circle cx="24" cy="54" r="3.5" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="50" width="120" height="7" rx="3.5" fill="var(--text)" opacity="0.8"/>
+                  <circle cx="24" cy="74" r="3.5" fill="var(--accent)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="70" width="138" height="7" rx="3.5" fill="var(--text-muted)" opacity="0.7"/>
+                  <circle cx="24" cy="94" r="3.5" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="90" width="105" height="7" rx="3.5" fill="var(--text-muted)" opacity="0.7"/>
+                  <circle cx="24" cy="114" r="3.5" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <rect x="34" y="110" width="126" height="7" rx="3.5" fill="var(--text-muted)" opacity="0.7"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 4: Chalkboard Video (Compact, White tint) -->
+          <div class="bento-card bento-card-white bento-card-compact">
+            <div class="bento-card-head">
+              <h3 class="bento-card-title">Video lessons</h3>
+              <p class="bento-card-desc">Chalkboard lessons in three paces: Full syllabus, Sprint, and Blitz.</p>
+            </div>
+            <div class="bento-visual" aria-hidden="true">
+              <svg viewBox="0 0 280 150" focusable="false">
+                <!-- Chalkboard frame -->
+                <rect x="25" y="10" width="230" height="128" rx="12" fill="var(--chalkboard-bg, #202945)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <!-- Subtle board grid/math curves -->
+                <path d="M 40 75 Q 90 35 140 75 T 240 75" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="3 3" opacity="0.25"/>
+                <line x1="40" y1="85" x2="240" y2="85" stroke="#FFFFFF" stroke-width="1" opacity="0.15"/>
+                <!-- Center play button -->
+                <circle cx="140" cy="54" r="20" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <polygon points="135,45 150,54 135,63" fill="#FFFFFF"/>
+                <!-- 3 Pace Chips at bottom -->
+                <g transform="translate(36, 96)">
+                  <!-- Chip 1: Full syllabus -->
+                  <rect x="0" y="0" width="70" height="20" rx="6" fill="var(--bg-tint-lavender)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="35" y="13.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="700" fill="var(--text)" text-anchor="middle">Full syllabus</text>
+                  <!-- Chip 2: Sprint -->
+                  <rect x="76" y="0" width="58" height="20" rx="6" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="105" y="13.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="700" fill="var(--text)" text-anchor="middle">Sprint</text>
+                  <!-- Chip 3: Blitz -->
+                  <rect x="140" y="0" width="58" height="20" rx="6" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1"/>
+                  <text x="169" y="13.5" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="700" fill="var(--ok-ink)" text-anchor="middle">Blitz</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. How It Works Path -->
+    <section class="landing-sec scroll-fade-up" aria-labelledby="steps-heading">
+      <div class="l-container">
+        <div class="landing-sec-header">
+          <h2 id="steps-heading" class="landing-sec-heading">How it works</h2>
+          <p class="landing-sec-subtext">Three straightforward steps to start revising in seconds.</p>
+        </div>
+
+        <div class="how-path-wrap">
+          <!-- Mobile vertical connecting line -->
+          <div class="how-mobile-track" aria-hidden="true"></div>
+
+          <!-- Desktop horizontal connecting line behind circles -->
+          <div class="how-desktop-line-wrap" aria-hidden="true">
+            <svg class="how-desktop-line-svg" viewBox="0 0 800 4" preserveAspectRatio="none" focusable="false">
+              <line x1="0" y1="2" x2="800" y2="2" stroke="var(--illustration-stroke)" stroke-width="2" class="how-path-line"/>
+            </svg>
+          </div>
+
+          <div class="how-steps-list">
+            <!-- Step 1: Sign in -->
+            <div class="how-step-item">
+              <div class="how-num-circle" aria-label="Step 1">1</div>
+              <div class="how-step-body">
+                <div class="how-step-icon-badge" aria-hidden="true">
+                  <!-- Outlined Key -->
+                  <svg viewBox="0 0 32 32" width="32" height="32" focusable="false">
+                    <circle cx="12" cy="14" r="8" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                    <circle cx="12" cy="14" r="3.5" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                    <path d="M 18 17 L 27 26 L 25 28 L 23 26 L 21 28 L 19 26" fill="none" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <h3 class="how-step-title">Sign in</h3>
+                <p class="how-step-desc">Log in with any Google account to unlock your personal revision space.</p>
+              </div>
+            </div>
+
+            <!-- Step 2: Pick a subject -->
+            <div class="how-step-item">
+              <div class="how-num-circle" aria-label="Step 2">2</div>
+              <div class="how-step-body">
+                <div class="how-step-icon-badge" aria-hidden="true">
+                  <!-- Outlined Globe -->
+                  <svg viewBox="0 0 32 32" width="32" height="32" focusable="false">
+                    <circle cx="16" cy="16" r="12" fill="var(--blue-50)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                    <ellipse cx="16" cy="16" rx="6" ry="12" fill="none" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                    <line x1="4" y1="16" x2="28" y2="16" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                    <path d="M 6 10 Q 16 12 26 10" fill="none" stroke="var(--illustration-stroke)" stroke-width="1" stroke-dasharray="2 2"/>
+                  </svg>
+                </div>
+                <h3 class="how-step-title">Pick a subject</h3>
+                <p class="how-step-desc">Select Environmental Studies or dive into Quantitative and Qualitative Skills practice.</p>
+              </div>
+            </div>
+
+            <!-- Step 3: Revise and bookmark -->
+            <div class="how-step-item">
+              <div class="how-num-circle" aria-label="Step 3">3</div>
+              <div class="how-step-body">
+                <div class="how-step-icon-badge" aria-hidden="true">
+                  <!-- Outlined Bookmark -->
+                  <svg viewBox="0 0 32 32" width="32" height="32" focusable="false">
+                    <path d="M 9 5 C 9 4 10 3 11 3 L 21 3 C 22 3 23 4 23 5 L 23 27 L 16 22 L 9 27 Z" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                    <line x1="12" y1="9" x2="20" y2="9" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="12" y1="13" x2="18" y2="13" stroke="var(--illustration-stroke)" stroke-width="1.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h3 class="how-step-title">Revise and save</h3>
+                <p class="how-step-desc">Drill cards, solve MCQs, and bookmark questions for quick review.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Final CTA Panel -->
+    <section class="landing-sec scroll-fade-up" aria-labelledby="cta-heading">
+      <div class="l-container">
+        <div class="final-cta-panel">
+          <!-- Illustrated Corner Floating Objects + Fine Grain -->
+          <div class="final-cta-corner-art" aria-hidden="true">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" style="width:100%;height:100%" focusable="false">
+              <defs>
+                <filter id="final-cta-grain">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise"/>
+                  <feColorMatrix type="matrix" values="0.11 0 0 0 0.11   0 0.14 0 0 0.14   0 0 0.25 0 0.25   0 0 0 0.04 0"/>
+                </filter>
+              </defs>
+              <!-- Top-left faceted crystal -->
+              <g transform="translate(-20, -20) rotate(-15 60 60)">
+                <polygon points="60,10 110,40 100,100 40,110 10,70" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <polygon points="60,10 70,55 10,70" fill="var(--peach-200)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <polygon points="60,10 110,40 70,55" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <polygon points="70,55 110,40 100,100" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+              </g>
+              <!-- Top-right water droplet -->
+              <g transform="translate(1140, -10) rotate(15)">
+                <path d="M 30 0 C 30 0 60 45 60 65 C 60 85 45 100 30 100 C 15 100 0 85 0 65 C 0 45 30 0 30 0 Z" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M 22 40 C 22 40 14 55 14 68 C 14 74 18 78 24 78" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+              </g>
+              <!-- Bottom-left leaf -->
+              <g transform="translate(-15, 310) rotate(-25 50 50)">
+                <path d="M 0 50 C 30 0 80 10 100 50 C 80 90 30 100 0 50 Z" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+                <line x1="0" y1="50" x2="90" y2="50" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <line x1="30" y1="50" x2="45" y2="30" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <line x1="50" y1="50" x2="68" y2="32" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <line x1="30" y1="50" x2="45" y2="70" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <line x1="50" y1="50" x2="68" y2="68" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+              </g>
+              <!-- Bottom-right satellite -->
+              <g transform="translate(1110, 310) rotate(-10)">
+                <rect x="35" y="25" width="30" height="22" rx="4" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <line x1="50" y1="25" x2="50" y2="10" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <circle cx="50" cy="8" r="3" fill="var(--accent)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+                <rect x="0" y="28" width="28" height="16" rx="2" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+                <rect x="72" y="28" width="28" height="16" rx="2" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+              </g>
+              <!-- Subtle fine grain overlay -->
+              <rect width="100%" height="100%" filter="url(#final-cta-grain)" opacity="var(--grain-opacity, 0.04)" pointer-events="none"/>
+            </svg>
+          </div>
+
+          <!-- Centered CTA Content Block -->
+          <div class="final-cta-content">
+            <h2 id="cta-heading" class="final-cta-heading">Ready to start your FAT revision?</h2>
+            <p class="final-cta-lead">Sign in with Google and pick up where you left off.</p>
+            <button type="button" class="hero-cta-pill final-cta-pill" data-action="google-signin" aria-label="Sign in with Google to start FAT revision">
+              <span class="hero-cta-content">
+                <svg class="g" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+                <span class="hero-cta-label">Sign in with Google</span>
+              </span>
+              <span class="hero-cta-icon-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </span>
+            </button>
+            <span class="final-cta-subnote">Free with your Google account</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Landing Footer -->
+    <footer class="landing-footer">
+      <div class="l-container">
+        <div class="landing-footer-inner">
+          <div class="landing-footer-brand">
+            <span class="landing-footer-logo">learn-skit</span>
+            <span class="landing-footer-sep" aria-hidden="true">·</span>
+            <span class="landing-footer-tag">Independent FAT revision study tool</span>
+          </div>
+          <nav class="landing-footer-links" aria-label="Legal">
+            <a href="/privacy" class="landing-footer-link">Privacy</a>
+            <a href="/terms" class="landing-footer-link">Terms</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+  
+</main>
 
 <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
 

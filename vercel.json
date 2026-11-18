@@ -15,9 +15,35 @@
       "permanent": false
     },
     {
+      "source": "/tools",
+      "destination": "/#/?next=/tools",
+      "permanent": false
+    },
+    {
       "source": "/admin/:path*",
       "destination": "/#/?next=/admin/:path*",
       "permanent": false
+    },
+    {
+      "source": "/admin",
+      "destination": "/#/?next=/admin",
+      "permanent": false
+    },
+    {
+      "source": "/dashboard/:path*",
+      "destination": "/#/?next=/tools",
+      "permanent": false
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/#/?next=/tools",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/opengraph-image",
+      "destination": "/opengraph-image.png"
     }
   ],
   "headers": [
@@ -35,11 +61,64 @@
       ]
     },
     {
+      "source": "/(s|tools|admin|dashboard)/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/dashboard",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
         }
       ]
     }

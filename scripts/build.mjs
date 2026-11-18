@@ -72,6 +72,8 @@ let env = {};
 try { for (const line of (await read('.env.local')).split(/\r?\n/)) { const match = line.match(/^([A-Z_]+)\s*=\s*(.*)$/); if (match) env[match[1]] = match[2].replace(/^(['"])(.*)\1$/, '$2'); } } catch (e) { if (e.code !== 'ENOENT') throw e; }
 const url = process.env.SUPABASE_URL || env.SUPABASE_URL || '';
 const key = process.env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_SITE_URL || 'https://learn-skit.vercel.app';
+const googleVerification = process.env.GOOGLE_SITE_VERIFICATION || env.GOOGLE_SITE_VERIFICATION || '';
 if (url && !/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(url)) throw Error('Invalid SUPABASE_URL');
 if (key.startsWith('sb_secret_')) throw Error('A secret key must never be used as SUPABASE_ANON_KEY');
 if (key && key === (process.env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY)) throw Error('The service key must never enter the browser build');
@@ -81,10 +83,92 @@ await writeFile(path.join(root, 'private-build/content.json'), JSON.stringify(ro
 await writeFile(path.join(root, 'private-build/status.json'), JSON.stringify(status, null, 2));
 await writeFile(path.join(root, 'js/data.js'), `// Public catalogue only. Study content is fetched after authentication.\nwindow.BRAND = ${JSON.stringify(brand)};\nwindow.SUBJECTS = ${JSON.stringify(subjects, null, 2)};\n`);
 await writeFile(path.join(root, 'js/config.js'), `window.LEARN_SKIT_CONFIG = ${JSON.stringify({supabaseUrl: url, supabaseAnonKey: key})};\n`);
-for (const file of ['index.html','css/styles.css','css/workspace.css','js/data.js','js/config.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/theme.js','js/vendor/supabase.js','js/app.js','manifest.webmanifest','icons/app.svg','icons/app-192.png','icons/app-512.png']) {
+
+const publicFiles = [
+  'index.html',
+  'privacy.html',
+  'terms.html',
+  'css/styles.css',
+  'css/workspace.css',
+  'js/data.js',
+  'js/config.js',
+  'js/access.js',
+  'js/private-cache.js',
+  'js/study-core.js',
+  'js/workspace.js',
+  'js/theme.js',
+  'js/vendor/supabase.js',
+  'js/app.js',
+  'manifest.webmanifest',
+  'icons/app.svg',
+  'icons/app-192.png',
+  'icons/app-512.png',
+  'opengraph-image.png',
+  'apple-icon.png',
+  'icon.png',
+  'icon.svg',
+  'favicon.ico'
+];
+for (const file of publicFiles) {
   await mkdir(path.dirname(path.join(root, 'dist', file)), { recursive: true });
-  await copyFile(path.join(root, file), path.join(root, 'dist', file));
+  if (['index.html', 'privacy.html', 'terms.html'].includes(file)) {
+    let content = await read(file);
+    if (SITE_URL !== 'https://learn-skit.vercel.app') {
+      content = content.replaceAll('https://learn-skit.vercel.app', SITE_URL);
+    }
+    if (file === 'index.html' && googleVerification) {
+      content = content.replace('</head>', `  <meta name="google-site-verification" content="${googleVerification}">\n</head>`);
+    }
+    await writeFile(path.join(root, 'dist', file), content);
+  } else {
+    await copyFile(path.join(root, file), path.join(root, 'dist', file));
+  }
 }
+
+// Generate robots.txt
+const robotsTxt = `User-agent: *
+Allow: /$
+Allow: /privacy
+Allow: /terms
+Disallow: /dashboard
+Disallow: /s/
+Disallow: /tools/
+Disallow: /admin/
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /callback
+Disallow: /auth/
+Disallow: /api/
+
+Sitemap: ${SITE_URL}/sitemap.xml
+`;
+await writeFile(path.join(root, 'dist/robots.txt'), robotsTxt);
+
+// Generate sitemap.xml
+const today = new Date().toISOString().split('T')[0];
+const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${SITE_URL}/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/privacy</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/terms</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
+`;
+await writeFile(path.join(root, 'dist/sitemap.xml'), sitemapXml);
 const shellHash=createHash('sha256');for(const file of ['index.html','css/styles.css','css/workspace.css','js/config.js','js/data.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/theme.js','js/app.js'])shellHash.update(await read(file));
 const hlsBundle = 'node_modules/hls.js/dist/hls.min.js';
 await copyFile(path.join(root, hlsBundle), path.join(root, 'dist/js/vendor/hls.js'));
