@@ -1965,3 +1965,17 @@ button,a,input,select,textarea,summary{touch-action:manipulation}
   .hero-eyebrow::after{display:none}
   .hero-content{padding-inline:16px}
 }
+/* Low-resource browsers prioritize interaction over layered decoration. */
+.reduced-effects .mesh{display:none}
+.reduced-effects .glass,.reduced-effects header.top,.reduced-effects .study-dialog::backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.reduced-effects .clay,.reduced-effects .panel,.reduced-effects .opt,.reduced-effects .reading-nav{box-shadow:none!important}
+.reduced-effects .carousel-peek-card{filter:none!important}
+.reduced-effects [class*="hero-drift-"],.reduced-effects .blob,.reduced-effects .view-in,.reduced-effects .layer{animation:none!important}
+.reduced-effects .hero-atmosphere-svg [filter]{filter:none!important}
+.reduced-effects .hero-atmosphere-svg>rect[filter]{display:none}
+.reduced-effects .parallax-near,.reduced-effects .parallax-mid,.reduced-effects .parallax-far{transform:none!important;transition:none!important}
+@media(pointer:coarse){
+  .opts .opt,.opts .opt:hover,.opts .opt:active{transform:none!important;box-shadow:none!important;transition:background-color 80ms,color 80ms}
+  .layer{animation:none!important}
+  .carousel-active-card{box-shadow:none!important}
+}

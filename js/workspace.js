@@ -39,7 +39,8 @@ window.StudyWorkspace=(()=>{
     shell('Search','Search the study content available in your account.',`${panel('<label>Search<input id="study-search" type="search" placeholder="Topic, formula, keyword or item ID" autocomplete="off"></label>')}<div id="search-results" class="search-results"></div>`);
     const all=[...cards().map(x=>({...x,type:'card',title:x.c[0],body:x.c[1],href:link(x.m,x.s,'cards')})),...questions().map(x=>({...x,type:'question',title:x.q[0],body:x.q[4],href:link(x.m,x.s,'practice')})),...SUBJECTS.flatMap(s=>s.modules.filter(m=>m.note).map(m=>({id:'NOTE-'+m.id,type:'note',title:m.title,body:JSON.stringify(m.note),href:link(m,s,'notes'),m,s})))];
     const input=$('#study-search'),output=$('#search-results');
-    input.oninput=()=>{const term=StudyCore.normal(input.value);if(!term){output.innerHTML='';return;}const hits=all.filter(x=>StudyCore.normal(x.id+' '+x.title+' '+x.body).includes(term)).slice(0,60);output.innerHTML=`<p class="muted">${hits.length}${hits.length===60?'+':''} results</p>`+(hits.map(x=>`<article class="panel"><p class="qmeta">${esc(x.id)} · ${esc(x.m.title)} · ${x.type}</p><h2><a href="${x.href}">${esc(x.title)}</a></h2><p>${esc(String(x.body).slice(0,230))}</p>${controls(x.id,x.type,x.m.id,x.s.slug)}</article>`).join('')||empty('No matching study items.'));bindControls(output);};input.focus();
+    const index=all.map(item=>({item,text:StudyCore.normal(item.id+' '+item.title+' '+item.body)}));
+    input.oninput=()=>{const term=StudyCore.normal(input.value);if(!term){output.innerHTML='';return;}const hits=index.filter(entry=>entry.text.includes(term)).slice(0,60).map(entry=>entry.item);output.innerHTML=`<p class="muted">${hits.length}${hits.length===60?'+':''} results</p>`+(hits.map(x=>`<article class="panel"><p class="qmeta">${esc(x.id)} · ${esc(x.m.title)} · ${x.type}</p><h2><a href="${x.href}">${esc(x.title)}</a></h2><p>${esc(String(x.body).slice(0,230))}</p>${controls(x.id,x.type,x.m.id,x.s.slug)}</article>`).join('')||empty('No matching study items.'));bindControls(output);};input.focus();
   }
   function showBookmarks(){const saved=new Set(Object.keys(P()).filter(k=>k.startsWith('bookmark:')&&P()[k]).map(k=>k.slice(9)));const list=[...cards().map(x=>({...x,type:'card',title:x.c[0],body:x.c[1],href:link(x.m,x.s,'cards')})),...questions().map(x=>({...x,type:'question',title:x.q[0],body:x.q[4],href:link(x.m,x.s,'practice')})),...SUBJECTS.flatMap(s=>s.modules.filter(m=>m.note).map(m=>({id:'NOTE-'+m.id,type:'note',title:m.title,body:'Module notes',href:link(m,s,'notes'),m,s})))].filter(x=>saved.has(x.id));shell('Saved items','Your saved cards, questions and notes.',list.map(x=>panel(`<p class="qmeta">${esc(x.id)} · ${esc(x.m.title)}</p><h2><a href="${x.href}">${esc(x.title)}</a></h2><p>${esc(x.body)}</p>${controls(x.id,x.type,x.m.id,x.s.slug)}`)).join('')||empty('Nothing saved yet. Use Save on a card or question.'));bindControls();}
   function questionHTML(x,reveal=false){const group=x.meta.group||x.meta.passage||x.meta.scenario;return `<article class="panel question-item" data-question="${esc(x.id)}"><p class="qmeta">${esc(x.id)} · ${esc(x.m.title)} · ${x.bonus?'Bonus · ':''}${{E:'Easy',M:'Medium',H:'Hard'}[x.q[7]]||''}</p>${group?`<details class="question-group" open><summary>Shared passage or scenario</summary><p>${esc(typeof group==='string'?group:group.text||group.passage||group.scenario||'')}</p></details>`:''}${x.q[8]?'<p class="chip">Source conflict · confirm with your faculty</p>':''}<h2>${esc(x.q[0])}</h2><ol type="A">${x.q[1].map(o=>`<li>${esc(o)}</li>`).join('')}</ol><details ${reveal?'open':''}><summary>Answer and explanation</summary><p><b>${'ABCD'[x.q[2]]}. ${esc(x.q[1][x.q[2]])}</b></p><p>${esc(x.q[4])}</p>${x.q[5]?`<p><b>Shortcut:</b> ${esc(x.q[5])}</p>`:''}${x.q[6]?`<p><b>Trap:</b> ${esc(x.q[6])}</p>`:''}</details>${controls(x.id,'question',x.m.id,x.s.slug)}</article>`;}
@@ -105,9 +106,20 @@ window.StudyWorkspace=(()=>{
       bindControls();
     }
   
+    function feedback(item, selected) {
+      const correct = selected === item.answer;
+      const layers = [['Explanation',item.q[4],'ans'],['Shortcut',item.q[5],''],['Trap',item.q[6],'trap']];
+      return `<div class="practice-feedback ${correct ? 'practice-correct' : 'practice-wrong'}" role="status">
+        <b>${correct ? 'Correct' : 'Incorrect'}</b>
+        <p>Correct answer: ${'ABCD'[item.answer]}. ${esc(item.q[1][item.answer])}</p>
+        </div><div class="layers">${layers.filter(([,body])=>body).map(([title,body,kind])=>
+          `<div class="layer ${kind}"><b>${title}</b><p>${esc(body)}</p></div>`).join('')}</div>`;
+    }
+
     function draw() {
       const items = list();
       run.cursor = Math.max(0,Math.min(items.length - 1,run.cursor || 0));
+      const pageStart = Math.floor(run.cursor / 20) * 20;
       const item = items[run.cursor], selected = run.answers[item.id];
       const answered = Number.isInteger(selected);
       const correct = selected === item.answer;
@@ -115,24 +127,31 @@ window.StudyWorkspace=(()=>{
       const group = item.meta.group || item.meta.passage;
       shell(heading,'Your place and answers are saved.',`
         <div class="mock-toolbar panel">
-          <p>${Object.keys(run.answers).length}/${items.length} answered</p>
-          <div class="question-palette" aria-label="Practice questions">${items.map((q,i) => {
+          <p id="practice-count">${Object.keys(run.answers).length}/${items.length} answered</p>
+          <div class="question-palette" aria-label="Practice questions">${items.slice(pageStart,pageStart + 20).map((q,offset) => {
+            const i = pageStart + offset;
             const pick = run.answers[q.id], done = Number.isInteger(pick);
             return `<button type="button" class="btn sm clay ${done ? (pick === q.answer ? 'practice-correct' : 'practice-wrong') : ''}" aria-current="${i === run.cursor ? 'step' : 'false'}" aria-label="Question ${i+1}${done ? (pick === q.answer ? ', correct' : ', incorrect') : ''}" data-practice-cursor="${i}">${i+1}${done ? (pick === q.answer ? ' ✓' : ' ✗') : ''}</button>`;
           }).join('')}</div>
+          <form id="practice-jump" class="question-jump">
+            <button class="btn sm clay" type="button" data-question-page="-20" ${pageStart === 0 ? 'disabled' : ''}>Previous 20</button>
+            <label>Go to question <input name="question" type="number" inputmode="numeric" min="1" max="${items.length}" value="${run.cursor + 1}" required></label>
+            <button class="btn sm clay" type="submit">Go</button>
+            <button class="btn sm clay" type="button" data-question-page="20" ${pageStart + 20 >= items.length ? 'disabled' : ''}>Next 20</button>
+          </form>
         </div>
         ${panel(`<p class="qmeta">Question ${run.cursor+1}/${items.length} · ${esc(item.id)}</p>
           ${group ? `<details class="question-group" open><summary>Shared passage or scenario</summary><p>${esc(typeof group === 'string' ? group : group.text || group.passage || '')}</p></details>` : ''}
           ${item.q[8] ? '<p class="chip">Source conflict · confirm with your faculty</p>' : ''}
           <h2>${esc(item.q[0])}</h2>
           <div class="opts">${item.q[1].map((option,i) => `<button type="button" class="opt clay ${answered ? (i === item.answer ? 'ok' : i === selected ? 'bad' : 'dim') : ''}" data-practice-pick="${i}" aria-pressed="${selected === i}" ${answered ? 'disabled' : ''}><span class="l">${'ABCD'[i]}</span><span>${esc(option)}</span><span class="st">${answered ? (i === item.answer ? '✓ Correct answer' : i === selected ? '✗ Your answer' : '') : ''}</span></button>`).join('')}</div>
-          ${answered ? `<div class="practice-feedback ${correct ? 'practice-correct' : 'practice-wrong'}" role="status"><b>${correct ? 'Correct' : 'Incorrect'}</b><p>Correct answer: ${'ABCD'[item.answer]}. ${esc(item.q[1][item.answer])}</p></div><div class="layers"><div class="layer ans"><b>Explanation</b><p>${esc(item.q[4])}</p></div>${item.q[5] ? `<div class="layer"><b>Shortcut</b><p>${esc(item.q[5])}</p></div>` : ''}${item.q[6] ? `<div class="layer trap"><b>Trap</b><p>${esc(item.q[6])}</p></div>` : ''}</div>` : ''}
+          <div id="practice-answer-feedback">${answered ? feedback(item,selected) : ''}</div>
           <div class="row">
             <button type="button" class="btn clay" id="practice-prev" ${run.cursor === 0 ? 'disabled' : ''}>Previous</button>
             <button type="button" class="btn ink" id="practice-next">${run.cursor === items.length-1 ? 'Practice summary' : answered ? 'Next question' : 'Skip question'}</button>
             <button type="button" class="btn clay" id="practice-summary">View progress</button>
           </div>${controls(item.id,'question',item.m.id,slug)}`)}`);
-      $$('[data-practice-pick]').forEach(button => button.onclick = () => {
+      $$('[data-practice-pick]').forEach(button => button.onclick = event => {
         if (Number.isInteger(run.answers[item.id])) return;
         const pick = Number(button.dataset.practicePick), elapsed = Date.now()-started;
         run.answers[item.id] = pick;
@@ -142,11 +161,38 @@ window.StudyWorkspace=(()=>{
         LearnSkit.put('mcq',item.id,record);
         LearnSkit.queueRpc('study_attempt',{p_id:crypto.randomUUID(), p_module:item.m.id,
           p_question:item.id, p_selected:pick, p_elapsed_ms:Math.min(7200000,elapsed)});
-        draw();
-        $('#practice-next').focus({preventScroll:true});
+        const isCorrect = pick === item.answer;
+        $$('[data-practice-pick]').forEach(option => {
+          const index = Number(option.dataset.practicePick);
+          option.disabled = true;
+          option.setAttribute('aria-pressed', index === pick);
+          option.classList.add(index === item.answer ? 'ok' : index === pick ? 'bad' : 'dim');
+          $('.st',option).textContent = index === item.answer ? '✓ Correct answer' : index === pick ? '✗ Your answer' : '';
+        });
+        $('#practice-answer-feedback').innerHTML = feedback(item,pick);
+        $('#practice-count').textContent = Object.keys(run.answers).length + '/' + items.length + ' answered';
+        const paletteButton = $('[data-practice-cursor="' + run.cursor + '"]');
+        paletteButton.classList.add(isCorrect ? 'practice-correct' : 'practice-wrong');
+        paletteButton.textContent = (run.cursor + 1) + (isCorrect ? ' ✓' : ' ✗');
+        paletteButton.setAttribute('aria-label', 'Question ' + (run.cursor + 1) + (isCorrect ? ', correct' : ', incorrect'));
+        if (run.cursor < items.length - 1) $('#practice-next').textContent = 'Next question';
+        if (event.detail === 0) $('#practice-next').focus({preventScroll:true});
       });
       $$('[data-practice-cursor]').forEach(button => button.onclick = () => {
         run.cursor = Number(button.dataset.practiceCursor);
+        persist();
+        draw();
+      });
+      $('#practice-jump').onsubmit = event => {
+        event.preventDefault();
+        const value = Number(event.target.elements.question.value);
+        if (!Number.isInteger(value) || value < 1 || value > items.length) return;
+        run.cursor = value - 1;
+        persist();
+        draw();
+      };
+      $$('[data-question-page]').forEach(button => button.onclick = () => {
+        run.cursor = Math.max(0, Math.min(items.length - 1, pageStart + Number(button.dataset.questionPage)));
         persist();
         draw();
       });

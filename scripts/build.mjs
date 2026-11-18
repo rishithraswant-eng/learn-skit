@@ -97,6 +97,7 @@ const publicFiles = [
   'js/data.js',
   'js/config.js',
   'js/access.js',
+  'js/compat.js',
   'js/private-cache.js',
   'js/study-core.js',
   'js/workspace.js',
@@ -176,6 +177,7 @@ await writeFile(path.join(root, 'dist/sitemap.xml'), sitemapXml);
 const shellHash=createHash('sha256');for(const file of ['index.html','css/styles.css','css/workspace.css','js/config.js','js/data.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/theme.js','js/app.js'])shellHash.update(await read(file));
 shellHash.update(await read('sw.js'));
 shellHash.update(await read('css/fonts.css'));
+shellHash.update(await read('js/compat.js'));
 const hlsBundle = 'node_modules/hls.js/dist/hls.min.js';
 await copyFile(path.join(root, hlsBundle), path.join(root, 'dist/js/vendor/hls.js'));
 shellHash.update(await read(hlsBundle));

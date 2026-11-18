@@ -86,7 +86,7 @@
 
   if (window.matchMedia) {
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    mql.addEventListener('change', e => {
+    const onSystemChange = e => {
       try {
         if (localStorage.getItem(STORAGE_KEY) === 'system') {
           apply(e.matches ? 'dark' : 'light', true);
@@ -94,7 +94,9 @@
       } catch(err) {
         apply('light', true);
       }
-    });
+    };
+    if (mql.addEventListener) mql.addEventListener('change', onSystemChange);
+    else if (mql.addListener) mql.addListener(onSystemChange);
   }
 
   window.Theme = {

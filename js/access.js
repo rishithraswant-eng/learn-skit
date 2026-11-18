@@ -7,7 +7,13 @@ window.LearnSkit = (() => {
   const message = text => { const node = document.querySelector('#toast'); node.textContent = text; node.classList.add('on'); setTimeout(() => node.classList.remove('on'), 5000); };
   const cacheKey = id => `learn-skit:v2:${id}`;
   const safeLast = value => value && /^#\/s\/[\w-]+\/[\w-]+\/(?:cards|practice|notes|video)$/.test(value.h) && typeof value.label === 'string' && typeof value.short === 'string' ? { h:value.h, label:value.label, short:value.short } : null;
-  const cache = () => { if (user) try { localStorage.setItem(cacheKey(user.id), JSON.stringify({ state, pending: [...pending] })); } catch {} };
+  const writeCache = () => { if (user) try { localStorage.setItem(cacheKey(user.id), JSON.stringify({ state, pending: [...pending] })); } catch {} };
+  let cacheQueued = false;
+  function cache() {
+    if (!user || cacheQueued) return;
+    cacheQueued = true;
+    Promise.resolve().then(() => { cacheQueued = false; writeCache(); });
+  }
   function put(kind, item_id, payload) {
     if (!user) return;
     pending.set(`${kind}:${item_id}`, { user_id: user.id, kind, item_id, payload });
@@ -35,7 +41,7 @@ window.LearnSkit = (() => {
   async function load(session) {
     const ticket = ++generation;
     const previousUser=user?.id;
-    cache();
+    writeCache();
     clearTimeout(timer); clearContent(); state = empty(); pending = new Map();
     user = session?.user || null;
     if(previousUser&&previousUser!==user?.id&&window.PrivateStudyCache)PrivateStudyCache.remove(previousUser).catch(()=>{});
@@ -50,14 +56,19 @@ window.LearnSkit = (() => {
       pending = new Map((stored?.pending || []).filter(([,row]) => row.user_id === id));
     } catch {}
     try {
-      const { data: modules, error } = await client.from('study_modules').select('subject,module_id,payload');
+      const progressRequest = (async () => {
+        const rows = [];
+        for (let offset = 0; ; offset += 1000) {
+          const page = await client.from('study_progress').select('kind,item_id,payload').eq('user_id', id).order('kind').order('item_id').range(offset, offset + 999);
+          if (page.error) throw page.error;
+          rows.push(...page.data);
+          if (page.data.length < 1000) return rows;
+        }
+      })();
+      const [{data: modules, error}, progress] = await Promise.all([
+        client.from('study_modules').select('subject,module_id,payload'), progressRequest
+      ]);
       if (error) throw error;
-      const progress = [];
-      for (let offset = 0; ; offset += 1000) {
-        const page = await client.from('study_progress').select('kind,item_id,payload').eq('user_id', id).order('kind').order('item_id').range(offset, offset + 999);
-        if (page.error) throw page.error;
-        progress.push(...page.data); if (page.data.length < 1000) break;
-      }
       if (ticket !== generation) return;
       if(window.PrivateStudyCache)PrivateStudyCache.save(id,modules).catch(()=>{});
       for (const row of modules) {
@@ -120,8 +131,9 @@ window.LearnSkit = (() => {
     await load(null);
   }
   addEventListener('online', () => flush());
-  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { writeCache(); flush(); } });
   addEventListener('pagehide', () => {
+    writeCache();
     if (!client || !user || !pending.size) return;
     // keepalive supports the Authorization header required by RLS.
     client.auth.getSession().then(({data}) => {

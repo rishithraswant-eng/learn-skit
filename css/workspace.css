@@ -1,4 +1,8 @@
 [hidden]{display:none!important}
+.question-jump{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.workspace .question-jump label{display:flex;align-items:center;gap:8px;margin:0;font-size:.85rem}
+.workspace .question-jump input{width:76px;min-height:44px;padding:8px}
+.question-jump button{min-height:44px}
 /* Keep phone controls clear of the two-row header and the home indicator. */
 @media (max-width:860px){
   :root{--study-header-height:calc(120px + env(safe-area-inset-top,0px))}
