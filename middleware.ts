@@ -35,6 +35,6 @@ export const config = {
    * - static assets (_next/static, css, js, icons, etc.)
    */
   matcher: [
-    '/((?!_next/static|_next/image|css/|js/|icons/|privacy|terms|robots\\.txt|sitemap\\.xml|favicon\\.ico|opengraph-image.*|icon.*|apple-icon.*|manifest\\.webmanifest|manifest\\.json|$).*)',
+    '/((?!_next/static|_next/image|css/|js/|fonts/|icons/|privacy|terms|robots\\.txt|sitemap\\.xml|favicon\\.ico|opengraph-image.*|icon.*|apple-icon.*|manifest\\.webmanifest|manifest\\.json|$).*)',
   ],
 };
