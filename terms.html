@@ -32,7 +32,7 @@
 (function(){
   try {
     var stored = localStorage.getItem('learn-skit-theme');
-    var isDark = stored ? stored === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var isDark = stored === 'dark' || (stored === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
     var root = document.documentElement;
     if (isDark) {
       root.classList.add('dark');

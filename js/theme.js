@@ -10,8 +10,9 @@
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === 'dark' || stored === 'light') return stored;
+      if (stored === 'system') return isSystemDark() ? 'dark' : 'light';
     } catch(e) {}
-    return isSystemDark() ? 'dark' : 'light';
+    return 'light';
   }
 
   function disableTransitions() {
@@ -53,7 +54,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, newTheme);
     } catch(e){}
-    apply(newTheme, true);
+    apply(newTheme === 'system' ? (isSystemDark() ? 'dark' : 'light') : newTheme, true);
   }
 
   function toggle() {
@@ -87,11 +88,11 @@
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     mql.addEventListener('change', e => {
       try {
-        if (!localStorage.getItem(STORAGE_KEY)) {
+        if (localStorage.getItem(STORAGE_KEY) === 'system') {
           apply(e.matches ? 'dark' : 'light', true);
         }
       } catch(err) {
-        apply(e.matches ? 'dark' : 'light', true);
+        apply('light', true);
       }
     });
   }
