@@ -729,6 +729,12 @@ function initHeroParallax() {
     });
   };
   hero.addEventListener('pointermove', onMove, { passive: true });
+  const previousCleanup = cleanupView;
+  cleanupView = () => {
+    previousCleanup();
+    hero.removeEventListener('pointermove', onMove);
+    if (rafId) cancelAnimationFrame(rafId);
+  };
 }
 
 function publicLanding() {
@@ -1140,7 +1146,11 @@ function publicLanding() {
 
 function initLandingScrollEffects() {
   // 1. Header scroll border
+  let scrolled;
   const onScroll = () => {
+    const next = window.scrollY > 8;
+    if (next === scrolled) return;
+    scrolled = next;
     const header = document.querySelector('header.top');
     if (header) {
       if (window.scrollY > 8) {
@@ -1152,15 +1162,25 @@ function initLandingScrollEffects() {
   };
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+  const previousCleanup = cleanupView;
+  let observer;
+  const frames = new Set();
+  cleanupView = () => {
+    previousCleanup();
+    window.removeEventListener('scroll', onScroll);
+    observer?.disconnect();
+    frames.forEach(id => cancelAnimationFrame(id));
+  };
 
   // 2. IntersectionObserver for fade-up, counter, and line drawing
-  if (!('IntersectionObserver' in window)) {
+  if (!('IntersectionObserver' in window) || matchMedia('(max-width: 860px), (pointer: coarse), (prefers-reduced-motion: reduce)').matches) {
     $$('.scroll-fade-up').forEach(el => el.classList.add('in-view'));
     $$('.how-path-line').forEach(el => el.classList.add('animated'));
+    $$('.stat-number', view).forEach(el => { el.textContent = el.dataset.target + (el.dataset.suffix || ''); });
     return;
   }
 
-  const observer = new IntersectionObserver((entries, obs) => {
+  observer = new IntersectionObserver((entries, obs) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const target = entry.target;
@@ -1184,9 +1204,13 @@ function initLandingScrollEffects() {
               const eased = 1 - Math.pow(1 - progress, 3);
               const current = Math.round(eased * targetVal);
               el.textContent = current + suffix;
-              if (progress < 1) requestAnimationFrame(tick);
+              if (progress < 1) {
+                const frame = requestAnimationFrame(now => { frames.delete(frame); tick(now); });
+                frames.add(frame);
+              }
             };
-            requestAnimationFrame(tick);
+            const frame = requestAnimationFrame(now => { frames.delete(frame); tick(now); });
+            frames.add(frame);
           });
         }
 

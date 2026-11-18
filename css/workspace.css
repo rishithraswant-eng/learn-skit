@@ -1,4 +1,26 @@
 [hidden]{display:none!important}
+/* Keep phone controls clear of the two-row header and the home indicator. */
+@media (max-width:860px){
+  :root{--study-header-height:calc(120px + env(safe-area-inset-top,0px))}
+  .wrap,.workspace,.panel,.session,.opts,.form-grid>*{min-width:0}
+  .panel{padding:20px}
+  .workspace input,.workspace select,.workspace textarea,.study-dialog input,.study-dialog select,.study-dialog textarea,.predicted-filters select{font-size:16px!important}
+  .workspace .row>button,.workspace .row>a,.session .btn,.seg button{min-height:44px}
+  .workspace .mock-toolbar{position:relative;top:auto!important;padding:14px;margin-bottom:16px}
+  .question-palette{touch-action:pan-x;overscroll-behavior-x:contain}
+  .question-palette button{min-height:44px;scroll-margin-inline:12px}
+  .question-group,.note-toc{position:static;max-height:none}
+  .reading-card,.opt{overflow-wrap:anywhere}
+  .opt{min-height:52px;padding:14px;align-items:flex-start}
+  .opt .st{font-size:.8rem}
+  .reading-nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:var(--surface-raised);padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .reading-nav .btn{flex:1 1 40%;white-space:normal}
+  .note section{scroll-margin-top:var(--study-header-height)}
+  .note code{max-width:100%;overflow-wrap:anywhere;word-break:break-word;box-sizing:border-box}
+  .note pre{max-width:100%;overflow:auto}
+  video{max-width:100%;height:auto;aspect-ratio:16/9;background:#14221c}
+  .study-dialog{width:calc(100% - 24px);max-height:calc(100svh - 32px);padding:20px}
+}
 .practice-feedback{margin-top:20px;padding:16px;border-radius:16px;border:2px solid currentColor}
 .practice-correct{background:#d8f5e5!important;color:#125e39!important}
 .practice-wrong{background:#ffe0e0!important;color:#962a2a!important}

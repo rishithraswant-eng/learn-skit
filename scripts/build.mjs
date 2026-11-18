@@ -90,6 +90,10 @@ const publicFiles = [
   'terms.html',
   'css/styles.css',
   'css/workspace.css',
+  'css/fonts.css',
+  'fonts/dm-sans-0.woff2',
+  'fonts/ibm-plex-sans-1.woff2',
+  'fonts/plus-jakarta-sans-2.woff2',
   'js/data.js',
   'js/config.js',
   'js/access.js',
@@ -170,6 +174,8 @@ const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 await writeFile(path.join(root, 'dist/sitemap.xml'), sitemapXml);
 const shellHash=createHash('sha256');for(const file of ['index.html','css/styles.css','css/workspace.css','js/config.js','js/data.js','js/access.js','js/private-cache.js','js/study-core.js','js/workspace.js','js/theme.js','js/app.js'])shellHash.update(await read(file));
+shellHash.update(await read('sw.js'));
+shellHash.update(await read('css/fonts.css'));
 const hlsBundle = 'node_modules/hls.js/dist/hls.min.js';
 await copyFile(path.join(root, hlsBundle), path.join(root, 'dist/js/vendor/hls.js'));
 shellHash.update(await read(hlsBundle));
