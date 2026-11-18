@@ -148,8 +148,8 @@ function home() {
   <aside class="creator-credit" aria-label="Site creators">
     <p>Made by</p>
     <ul>
-      <li>RISHITH RASWANT - 25BCE2286</li>
-      <li>TUSHAAR BHARARA - 25BDS0227</li>
+      <li>RISHITH RASWANT</li>
+      <li>TUSHAAR BHARARA</li>
     </ul>
   </aside>
 </section>`;
@@ -515,6 +515,12 @@ const heroAtmosphereSvg = () => `
     <g id="star-sparkle">
       <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="var(--hero-sparkle, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
     </g>
+    <g id="star-gold">
+      <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="var(--hero-star-gold, var(--accent))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+    </g>
+    <g id="star-lavender">
+      <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="var(--hero-star-lav, var(--lav-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
+    </g>
   </defs>
 
   <!-- 1. The 5 Atmospheric stacked arcs above Earth horizon -->
@@ -565,26 +571,26 @@ const heroAtmosphereSvg = () => `
   </g>
 
   <!-- Atmospheric layer metadata tags -->
-  <g class="desktop-only-obj" fill="var(--illustration-stroke)" opacity="0.45" font-family="'IBM Plex Sans', sans-serif" font-size="9" letter-spacing="1.5px">
+  <g class="desktop-only-obj hero-layer-labels" fill="var(--illustration-stroke)" opacity="0.70" font-family="'IBM Plex Sans', sans-serif" font-size="9" letter-spacing="1.5px">
     <text x="210" y="440">EXOSPHERE · 600+ KM</text>
-    <text x="1190" y="515">THERMOSPHERE · 85-600 KM</text>
+    <text x="1170" y="475">THERMOSPHERE · 85-600 KM</text>
     <text x="180" y="590">MESOSPHERE · 50-85 KM</text>
     <text x="1210" y="675">STRATOSPHERE · 12-50 KM</text>
-    <text x="490" y="750">TROPOSPHERE · 0-12 KM</text>
+    <text x="460" y="750">TROPOSPHERE · 0-12 KM</text>
   </g>
 
   <!-- Mascot: Friendly round astronaut learner peeking over the troposphere/earth arc -->
   <g class="hero-drift-mascot parallax-mid">
-    <g transform="translate(775, 706)">
+    <g transform="translate(950, 725)">
       <line x1="0" y1="-32" x2="0" y2="-44" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linecap="round"/>
       <circle cx="0" cy="-47" r="4.5" fill="var(--mascot-antenna, var(--blue))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <circle cx="0" cy="0" r="32" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <path d="M -22 -14 C -12 -26, 12 -26, 22 -14" stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="0.8"/>
-      <circle cx="-32" cy="2" r="5" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
-      <circle cx="32" cy="2" r="5" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="-32" cy="2" r="5" fill="var(--hero-bubble-b, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="32" cy="2" r="5" fill="var(--hero-bubble-b, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <path d="M -22 -4 C -22 -18, 22 -18, 22 -4 C 22 14, -22 14, -22 -4 Z" fill="var(--text)"/>
       <path d="M -15 -8 C -13 -13, -2 -14, 5 -12" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-      <circle cx="12" cy="-6" r="2" fill="var(--blue)"/>
+      <circle cx="12" cy="-6" r="2" fill="var(--accent)"/>
       <ellipse cx="-20" cy="24" rx="8" ry="6" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <ellipse cx="20" cy="24" rx="8" ry="6" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
     </g>
@@ -599,7 +605,7 @@ const heroAtmosphereSvg = () => `
       <line x1="16" y1="2" x2="170" y2="2" stroke="#FFFFFF" stroke-width="2" opacity="0.9"/>
       <rect x="14" y="14" width="86" height="18" rx="9" fill="var(--card-tag-bg, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1"/>
       <circle cx="23" cy="23" r="3" fill="var(--accent)"/>
-      <text x="32" y="26" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--accent-ink)" letter-spacing="0.5px">ACTIVE RECALL</text>
+      <text x="32" y="26" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--card-tag-text, var(--accent-ink))" letter-spacing="0.5px">ACTIVE RECALL</text>
       <text x="14" y="48" font-family="'Plus Jakarta Sans',sans-serif" font-size="10.5" font-weight="700" fill="var(--text)">Atmosphere layers?</text>
       <text x="14" y="66" font-family="'DM Sans',sans-serif" font-size="8.8" font-weight="500" fill="var(--text-secondary)">1 Tropo → 2 Strato → 3 Meso</text>
       <text x="14" y="80" font-family="'DM Sans',sans-serif" font-size="8.8" font-weight="500" fill="var(--text-secondary)">4 Thermo → 5 Exosphere</text>
@@ -611,10 +617,10 @@ const heroAtmosphereSvg = () => `
   <!-- Object 2: Faceted Mineral Crystal -->
   <g class="hero-drift-3 parallax-near">
     <g class="floating-crystal-group" transform="translate(230, 260)" filter="url(#hero-shadow)">
-      <polygon points="24,0 48,20 24,32 0,20" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
-      <polygon points="0,20 24,32 18,62 0,40" fill="var(--lav)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
-      <polygon points="24,32 48,20 48,40 30,62" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
-      <polygon points="18,62 24,32 30,62 24,68" fill="var(--blue-200)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="24,0 48,20 24,32 0,20" fill="var(--hero-crystal-1, var(--blue-100))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="0,20 24,32 18,62 0,40" fill="var(--hero-crystal-2, var(--lav))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="24,32 48,20 48,40 30,62" fill="var(--hero-crystal-3, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="18,62 24,32 30,62 24,68" fill="var(--hero-crystal-4, var(--blue-200))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
       <polygon points="24,3 32,18 24,24" fill="#FFFFFF" opacity="0.65"/>
     </g>
   </g>
@@ -622,7 +628,7 @@ const heroAtmosphereSvg = () => `
   <!-- Object 3: Botanical Leaf -->
   <g class="hero-drift-4 parallax-mid">
     <g class="floating-leaf-group" transform="translate(1220, 560) rotate(22)" filter="url(#hero-shadow)">
-      <path d="M 0 46 C 0 16, 22 0, 48 0 C 48 30, 26 46, 0 46 Z" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M 0 46 C 0 16, 22 0, 48 0 C 48 30, 26 46, 0 46 Z" fill="var(--hero-leaf, var(--ok))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
       <path d="M 0 46 Q 22 24, 48 0" stroke="var(--illustration-stroke)" stroke-width="1.5" fill="none"/>
       <line x1="16" y1="28" x2="10" y2="18" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
       <line x1="28" y1="16" x2="22" y2="8" stroke="var(--illustration-stroke)" stroke-width="1.3" stroke-linecap="round"/>
@@ -635,7 +641,7 @@ const heroAtmosphereSvg = () => `
   <g class="hero-drift-5 parallax-near">
     <g class="floating-droplet-group" transform="translate(290, 610)" filter="url(#hero-shadow)">
       <path d="M 18 0 C 18 0, 36 22, 36 34 C 36 44, 28 52, 18 52 C 8 52, 0 44, 0 34 C 0 22, 18 0, 18 0 Z"
-            fill="var(--blue-200)" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
+            fill="var(--hero-droplet, var(--blue-200))" stroke="var(--illustration-stroke)" stroke-width="1.5" stroke-linejoin="round"/>
       <path d="M 10 24 C 6 30, 6 38, 10 44" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
       <circle cx="24" cy="38" r="2.5" fill="#FFFFFF" opacity="0.6"/>
     </g>
@@ -644,11 +650,11 @@ const heroAtmosphereSvg = () => `
   <!-- Object 5: Small Satellite -->
   <g class="hero-drift-2 parallax-far desktop-only-obj">
     <g class="floating-satellite-group" transform="translate(1240, 160) rotate(-10)" filter="url(#hero-shadow)">
-      <rect x="0" y="14" width="22" height="14" rx="2" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <rect x="0" y="14" width="22" height="14" rx="2" fill="var(--hero-sat-panel, var(--blue))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <line x1="11" y1="14" x2="11" y2="28" stroke="var(--illustration-stroke)" stroke-width="1"/>
-      <rect x="25" y="10" width="24" height="22" rx="4" fill="var(--surface)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
-      <circle cx="37" cy="21" r="5" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
-      <rect x="52" y="14" width="22" height="14" rx="2" fill="var(--blue)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <rect x="25" y="10" width="24" height="22" rx="4" fill="var(--hero-sat-body, var(--surface))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="37" cy="21" r="5" fill="var(--hero-sat-core, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
+      <rect x="52" y="14" width="22" height="14" rx="2" fill="var(--hero-sat-panel, var(--blue))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <line x1="63" y1="14" x2="63" y2="28" stroke="var(--illustration-stroke)" stroke-width="1"/>
       <line x1="37" y1="10" x2="37" y2="2" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <path d="M 31 2 C 31 -2, 43 -2, 43 2" stroke="var(--illustration-stroke)" stroke-width="1.5" fill="none"/>
@@ -659,16 +665,16 @@ const heroAtmosphereSvg = () => `
   <!-- Option A -->
   <g class="hero-drift-3 parallax-mid desktop-only-obj">
     <g transform="translate(190, 480)" filter="url(#hero-shadow)">
-      <circle cx="20" cy="20" r="20" fill="var(--peach-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="20" cy="20" r="20" fill="var(--hero-bubble-a, var(--peach-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <path d="M 8 16 C 12 8, 24 8, 30 12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.75"/>
       <text x="20" y="25" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="14" font-weight="800" fill="var(--text)">A</text>
     </g>
   </g>
 
-  <!-- Option B -->
+  <!-- Option B: moved to 1090, 470 to keep well clear of headline "asks." -->
   <g class="hero-drift-1 parallax-far desktop-only-obj">
-    <g transform="translate(1010, 480)" filter="url(#hero-shadow)">
-      <circle cx="18" cy="18" r="18" fill="var(--blue-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+    <g transform="translate(1090, 470)" filter="url(#hero-shadow)">
+      <circle cx="18" cy="18" r="18" fill="var(--hero-bubble-b, var(--blue-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <path d="M 8 14 C 12 8, 22 8, 28 12" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.7"/>
       <text x="18" y="23" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="13" font-weight="800" fill="var(--text)">B</text>
     </g>
@@ -677,7 +683,7 @@ const heroAtmosphereSvg = () => `
   <!-- Option C -->
   <g class="hero-drift-5 parallax-far desktop-only-obj" filter="url(#blur-mid)" opacity="0.75">
     <g transform="translate(360, 210)">
-      <circle cx="16" cy="16" r="16" fill="var(--lav-100)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="16" cy="16" r="16" fill="var(--hero-bubble-c, var(--lav-100))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <text x="16" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="12" font-weight="800" fill="var(--text)">C</text>
     </g>
   </g>
@@ -685,19 +691,19 @@ const heroAtmosphereSvg = () => `
   <!-- Option D -->
   <g class="hero-drift-6 parallax-near">
     <g class="floating-option-d-group" transform="translate(1040, 610)" filter="url(#hero-shadow)">
-      <circle cx="22" cy="22" r="22" fill="var(--ok)" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
+      <circle cx="22" cy="22" r="22" fill="var(--hero-bubble-d, var(--ok))" stroke="var(--illustration-stroke)" stroke-width="1.5"/>
       <path d="M 10 16 C 14 10, 26 10, 32 14" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.8"/>
-      <text x="22" y="28" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="16" font-weight="800" fill="var(--ok-ink)">D</text>
+      <text x="22" y="28" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="16" font-weight="800" fill="var(--hero-bubble-d-text, var(--ok-ink))">D</text>
       <!-- Checked badge -->
       <circle cx="36" cy="10" r="8.5" fill="var(--hero-d-badge, var(--ok-ink))" stroke="var(--illustration-stroke)" stroke-width="1.2"/>
       <path d="M 33 10 L 35.5 12.5 L 39.5 7.5" stroke="var(--hero-d-check, var(--surface))" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     </g>
   </g>
 
-  <!-- Star sparkles at varying depths -->
-  <use href="#star-sparkle" x="160" y="180" class="desktop-only-obj" filter="url(#blur-mid)" opacity="0.6"/>
-  <use href="#star-sparkle" x="1340" y="320" class="desktop-only-obj" opacity="0.7"/>
-  <use href="#star-sparkle" x="420" y="680" class="desktop-only-obj" opacity="0.5"/>
+  <!-- Star sparkles at varying depths: mixed gold and pale lavender -->
+  <use href="#star-lavender" x="160" y="180" class="desktop-only-obj" filter="url(#blur-mid)" opacity="0.75"/>
+  <use href="#star-gold" x="1340" y="320" class="desktop-only-obj" opacity="0.85"/>
+  <use href="#star-lavender" x="420" y="680" class="desktop-only-obj" opacity="0.65"/>
 
   <!-- SVG feTurbulence grain texture overlay -->
   <rect width="100%" height="100%" filter="url(#hero-grain)" opacity="var(--grain-opacity, 0.045)" pointer-events="none"/>

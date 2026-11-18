@@ -2,7 +2,7 @@
 
 **Status:** The application runs in the local preview and uses a live Supabase project for Google sign-in, private study content, progress and video storage. The 37 module packs, individual EVS videos and all three combined EVS streams have been uploaded. A public frontend deployment has not been confirmed.
 
-**Creators:** RISHITH RASWANT - 25BCE2286 and TUSHAAR BHARARA - 25BDS0227. The credit is on the signed-in homepage beneath “How a session feels”.
+**Creators:** RISHITH RASWANT and TUSHAAR BHARARA. The credit is on the signed-in homepage beneath “How a session feels”.
 
 Use this file as the current handover. [PRD.md](../PRD.md) is the original ClayPrep specification. The private decisions log records decisions through the earlier build, and the private local milestone report describes the earlier local-only milestone. Their references to separate predicted/bonus pages, an unconnected backend or local-only combined video describe earlier states.
 
