@@ -2,15 +2,10 @@
 (function(){
   const STORAGE_KEY = 'learn-skit-theme';
 
-  function isSystemDark() {
-    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  }
-
   function getSavedTheme() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === 'dark' || stored === 'light') return stored;
-      if (stored === 'system') return isSystemDark() ? 'dark' : 'light';
     } catch(e) {}
     return 'light';
   }
@@ -51,10 +46,11 @@
   }
 
   function setTheme(newTheme) {
+    newTheme = newTheme === 'dark' ? 'dark' : 'light';
     try {
       localStorage.setItem(STORAGE_KEY, newTheme);
     } catch(e){}
-    apply(newTheme === 'system' ? (isSystemDark() ? 'dark' : 'light') : newTheme, true);
+    apply(newTheme, true);
   }
 
   function toggle() {
@@ -82,21 +78,6 @@
       e.preventDefault();
       toggle();
     };
-  }
-
-  if (window.matchMedia) {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const onSystemChange = e => {
-      try {
-        if (localStorage.getItem(STORAGE_KEY) === 'system') {
-          apply(e.matches ? 'dark' : 'light', true);
-        }
-      } catch(err) {
-        apply('light', true);
-      }
-    };
-    if (mql.addEventListener) mql.addEventListener('change', onSystemChange);
-    else if (mql.addListener) mql.addListener(onSystemChange);
   }
 
   window.Theme = {
