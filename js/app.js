@@ -121,7 +121,7 @@ function home() {
   <div class="tile tile-p clay" style="${boxStyle('p')}">
     <div class="big num"><span id="count">0</span><sup>+40</sup></div>
     <div class="lbl">EVS core MCQs</div>
-    <a href="#/s/evs/full-test">EVS full syllabus test ${I.ne.replace('<svg', '<svg width="14" height="14"')}</a>
+    <a href="#/s/evs/full-practice">EVS full syllabus practice ${I.ne.replace('<svg', '<svg width="14" height="14"')}</a>
   </div>
  </div></div>
 </section>
@@ -255,7 +255,7 @@ function initMcqDemo() {
 }
 
 /* ---------- SUBJECT HUB ---------- */
-const subjectTabs = (s, active) => `<nav class="subject-tabs glass" aria-label="${esc(s.short)} sections">${[['modules','Modules'],['full-test','Full syllabus test'],...(s.slug==='evs'?[['videos','Video library']]:[])].map(([key,label]) => `<a href="#/s/${s.slug}${key === 'modules' ? '' : '/' + key}" ${active === key ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav>`;
+const subjectTabs = (s, active) => `<nav class="subject-tabs glass" aria-label="${esc(s.short)} sections">${[['modules','Modules'],['full-practice','Full syllabus practice'],...(s.slug==='evs'?[['videos','Video library']]:[])].map(([key,label]) => `<a href="#/s/${s.slug}${key === 'modules' ? '' : '/' + key}" ${active === key ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav>`;
 function subject(slug, filter = 'all') {
   const s = SUB[slug]; if (!s) return notFound();
   const mods = s.modules.filter(m => filter === 'all' || m.hy);
@@ -1247,7 +1247,7 @@ function route() {
   }
 
   // Canonicalize legacy routes
-  const canonical = h.replace(/^#\/s\/(?:quantitative-1|qualitative-1)(?=\/|$)/, '#/s/skills-1').replace(/^#\/(predicted|bonus)\/([\w-]+)$/, (_,kind,slug) => `#/s/${['quantitative-1','qualitative-1'].includes(slug) ? 'skills-1' : slug}/full-test`).replace(/\/s\/([\w-]+)\/(?:predicted|bonus)$/, '/s/$1/full-test');
+  const canonical = h.replace(/^#\/s\/(?:quantitative-1|qualitative-1)(?=\/|$)/, '#/s/skills-1').replace(/^#\/(predicted|bonus)\/([\w-]+)$/, (_,kind,slug) => `#/s/${['quantitative-1','qualitative-1'].includes(slug) ? 'skills-1' : slug}/full-practice`).replace(/\/s\/([\w-]+)\/(?:predicted|bonus|full-test)$/, '/s/$1/full-practice');
   if (canonical !== h) { location.replace(canonical); return; }
 
   // Public standalone pages
@@ -1306,8 +1306,8 @@ function route() {
   if (h === '#/welcome') { StudyWorkspace.render(view, 'welcome'); return; }
   if ((r = h.match(/^#\/tools(?:\/([\w-]+))?(?:\?.*)?$/))) { StudyWorkspace.render(view, r[1] || 'tools'); return; }
   if (h === '#/' || h === '#' || h === '#how') home();
-  else if ((r = h.match(/^#\/s\/([\w-]+)\/full-test$/)) && SUB[r[1]]) {
-    StudyWorkspace.render(view, 'full-test?subject=' + r[1]);
+  else if ((r = h.match(/^#\/s\/([\w-]+)\/full-practice$/)) && SUB[r[1]]) {
+    StudyWorkspace.render(view, 'full-practice?subject=' + r[1]);
     setNav(r[1]);
   }
   else if (h === '#/s/evs/videos') { StudyWorkspace.render(view, 'videos'); setNav('evs'); }

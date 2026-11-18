@@ -1,4 +1,9 @@
 [hidden]{display:none!important}
+.practice-feedback{margin-top:20px;padding:16px;border-radius:16px;border:2px solid currentColor}
+.practice-correct{background:#d8f5e5!important;color:#125e39!important}
+.practice-wrong{background:#ffe0e0!important;color:#962a2a!important}
+[data-theme="dark"] .practice-correct{background:#143d2c!important;color:#a6f4c5!important}
+[data-theme="dark"] .practice-wrong{background:#4a2028!important;color:#ffb8be!important}
 .reading-card{display:grid;gap:12px;white-space:pre-line;overflow-wrap:anywhere}
 .reading-card h2{font-size:clamp(1.2rem,2.4vw,1.65rem)}
 .reading-answer{font-size:clamp(1.05rem,2vw,1.25rem);line-height:1.55}

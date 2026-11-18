@@ -51,32 +51,116 @@ window.StudyWorkspace=(()=>{
       draw();
     };
   }
-  function fullSyllabusTest(slug) {
+  function fullSyllabusPractice(slug) {
     const subject = SUBJECTS.find(item => item.slug === slug);
-    if (!subject) return mockBuilder();
+    if (!subject) return dashboard();
     const pool = [...new Map(questions().filter(item => item.s.slug === slug).map(item => [item.id, item])).values()];
-    const coreCount = pool.filter(item => !item.bonus).length;
-    const bonusCount = pool.length - coreCount;
-    const saved = P().mock;
-    const hasActiveTest = saved && !saved.submittedAt;
-    shell(subject.short + ' full syllabus test', 'Work through every module at your own pace. Answers appear after you submit.', panel(`
-      <p>${pool.length} questions across ${new Set(pool.map(item => item.m.id)).size} modules, including ${coreCount} core and ${bonusCount} bonus questions.</p>
-      <div class="row">
-        <button class="btn ink" id="start-full-test" type="button" ${pool.length ? '' : 'disabled'}>Start full syllabus test</button>
-        ${hasActiveTest ? '<button class="btn clay" id="resume-full-test" type="button">Resume saved test</button>' : ''}
-      </div>`));
-    $('#resume-full-test')?.addEventListener('click', mockRun);
-    $('#start-full-test').onclick = () => {
-      if (hasActiveTest && !confirm('Replace your current unfinished test?')) return;
-      const seed = crypto.getRandomValues(new Uint32Array(1))[0];
-      const selected = StudyCore.shuffle(pool, seed);
-      save('mock', {
-        id: crypto.randomUUID(), seed, questionIds: selected.map(item => item.id),
-        answers: {}, marked: {}, cursor: 0, startedAt: Date.now(), duration: null,
-        title: subject.short + ' full syllabus test'
+    const byId = new Map(pool.map(item => [item.id,item]));
+    const key = `full-practice:${slug}`;
+    let run = P()[key];
+    const old = P().mock;
+    if (!run && old?.duration === null && !old.submittedAt && old.questionIds?.length &&
+        old.questionIds.every(id => byId.has(id))) {
+      run = {id:old.id, seed:old.seed, questionIds:[...old.questionIds], answers:{...old.answers},
+        marked:{...old.marked}, cursor:old.cursor || 0, startedAt:old.startedAt};
+      save(key,run);
+    }
+    const persist = () => save(key,{...run, answers:{...run.answers}, marked:{...run.marked}});
+    const list = () => run.questionIds.map(id => byId.get(id)).filter(Boolean);
+    const valid = () => run?.questionIds?.length && run.questionIds.every(id => byId.has(id));
+    const url = `#/s/${slug}/full-practice`;
+    const heading = subject.short + ' full syllabus practice';
+  
+    function intro() {
+      const available = valid();
+      shell(heading,'Choose an answer to see feedback and the explanation immediately.',panel(`
+        <p>${pool.length} questions across ${new Set(pool.map(item => item.m.id)).size} modules.</p>
+        <div class="row">
+          ${available ? '<button class="btn ink" id="resume-full-practice" type="button">Continue practice</button>' : ''}
+          <button class="btn ${available ? 'clay' : 'ink'}" id="start-full-practice" type="button" ${pool.length ? '' : 'disabled'}>${available ? 'Start again' : 'Start practice'}</button>
+        </div>`));
+      $('#resume-full-practice')?.addEventListener('click',draw);
+      $('#start-full-practice').onclick = () => {
+        if (available && !confirm('Start a new practice session? This replaces your saved practice for this subject.')) return;
+        const seed = crypto.getRandomValues(new Uint32Array(1))[0];
+        const groups = new Map();
+        pool.forEach(item => {
+          const group = item.m.id + ':' + (item.meta.group_id || item.id);
+          if (!groups.has(group)) groups.set(group,[]);
+          groups.get(group).push(item.id);
+        });
+        run = {id:crypto.randomUUID(), seed, questionIds:StudyCore.shuffle([...groups.values()],seed).flat(),
+          answers:{}, marked:{}, cursor:0, startedAt:Date.now()};
+        persist();
+        draw();
+      };
+    }
+  
+    function summary() {
+      const items = list(), result = StudyCore.score(items,run.answers);
+      shell('Practice summary',`${result.correct}/${result.answered} answered correctly · ${result.unanswered} remaining`,
+        panel(`<div class="row"><button class="btn ink" id="continue-full-practice" type="button">Continue practice</button><a class="btn clay" href="${url}">Practice options</a></div>`) +
+        items.filter(item => Number.isInteger(run.answers[item.id])).map(item => questionHTML(item,true)).join(''));
+      $('#continue-full-practice').onclick = draw;
+      bindControls();
+    }
+  
+    function draw() {
+      const items = list();
+      run.cursor = Math.max(0,Math.min(items.length - 1,run.cursor || 0));
+      const item = items[run.cursor], selected = run.answers[item.id];
+      const answered = Number.isInteger(selected);
+      const correct = selected === item.answer;
+      const started = Date.now();
+      const group = item.meta.group || item.meta.passage;
+      shell(heading,'Your place and answers are saved.',`
+        <div class="mock-toolbar panel">
+          <p>${Object.keys(run.answers).length}/${items.length} answered</p>
+          <div class="question-palette" aria-label="Practice questions">${items.map((q,i) => {
+            const pick = run.answers[q.id], done = Number.isInteger(pick);
+            return `<button type="button" class="btn sm clay ${done ? (pick === q.answer ? 'practice-correct' : 'practice-wrong') : ''}" aria-current="${i === run.cursor ? 'step' : 'false'}" aria-label="Question ${i+1}${done ? (pick === q.answer ? ', correct' : ', incorrect') : ''}" data-practice-cursor="${i}">${i+1}${done ? (pick === q.answer ? ' ✓' : ' ✗') : ''}</button>`;
+          }).join('')}</div>
+        </div>
+        ${panel(`<p class="qmeta">Question ${run.cursor+1}/${items.length} · ${esc(item.id)}</p>
+          ${group ? `<details class="question-group" open><summary>Shared passage or scenario</summary><p>${esc(typeof group === 'string' ? group : group.text || group.passage || '')}</p></details>` : ''}
+          ${item.q[8] ? '<p class="chip">Source conflict · confirm with your faculty</p>' : ''}
+          <h2>${esc(item.q[0])}</h2>
+          <div class="opts">${item.q[1].map((option,i) => `<button type="button" class="opt clay ${answered ? (i === item.answer ? 'ok' : i === selected ? 'bad' : 'dim') : ''}" data-practice-pick="${i}" aria-pressed="${selected === i}" ${answered ? 'disabled' : ''}><span class="l">${'ABCD'[i]}</span><span>${esc(option)}</span><span class="st">${answered ? (i === item.answer ? '✓ Correct answer' : i === selected ? '✗ Your answer' : '') : ''}</span></button>`).join('')}</div>
+          ${answered ? `<div class="practice-feedback ${correct ? 'practice-correct' : 'practice-wrong'}" role="status"><b>${correct ? 'Correct' : 'Incorrect'}</b><p>Correct answer: ${'ABCD'[item.answer]}. ${esc(item.q[1][item.answer])}</p></div><div class="layers"><div class="layer ans"><b>Explanation</b><p>${esc(item.q[4])}</p></div>${item.q[5] ? `<div class="layer"><b>Shortcut</b><p>${esc(item.q[5])}</p></div>` : ''}${item.q[6] ? `<div class="layer trap"><b>Trap</b><p>${esc(item.q[6])}</p></div>` : ''}</div>` : ''}
+          <div class="row">
+            <button type="button" class="btn clay" id="practice-prev" ${run.cursor === 0 ? 'disabled' : ''}>Previous</button>
+            <button type="button" class="btn ink" id="practice-next">${run.cursor === items.length-1 ? 'Practice summary' : answered ? 'Next question' : 'Skip question'}</button>
+            <button type="button" class="btn clay" id="practice-summary">View progress</button>
+          </div>${controls(item.id,'question',item.m.id,slug)}`)}`);
+      $$('[data-practice-pick]').forEach(button => button.onclick = () => {
+        if (Number.isInteger(run.answers[item.id])) return;
+        const pick = Number(button.dataset.practicePick), elapsed = Date.now()-started;
+        run.answers[item.id] = pick;
+        persist();
+        const record = {ok:pick === item.answer, selected:pick, t:Date.now(), elapsed_ms:elapsed};
+        LearnSkit.state.mcq[item.id] = record;
+        LearnSkit.put('mcq',item.id,record);
+        LearnSkit.queueRpc('study_attempt',{p_id:crypto.randomUUID(), p_module:item.m.id,
+          p_question:item.id, p_selected:pick, p_elapsed_ms:Math.min(7200000,elapsed)});
+        draw();
+        $('#practice-next').focus({preventScroll:true});
       });
-      mockRun();
-    };
+      $$('[data-practice-cursor]').forEach(button => button.onclick = () => {
+        run.cursor = Number(button.dataset.practiceCursor);
+        persist();
+        draw();
+      });
+      $('#practice-prev').onclick = () => { run.cursor--; persist(); draw(); };
+      $('#practice-next').onclick = () => {
+        if (run.cursor === items.length-1) return summary();
+        run.cursor++;
+        persist();
+        draw();
+      };
+      $('#practice-summary').onclick = summary;
+      bindControls();
+    }
+    intro();
   }
   function mockBuilder(){const saved=P().mock; shell('Timed test','Choose your modules. Answers are revealed only after you submit.',`${saved&&!saved.submittedAt?panel(`<p>You have a saved test in progress.</p><button class="btn ink" id="resume-mock" type="button">Resume test</button>`):''}${saved?.submittedAt?panel('<p>Your last completed test is saved.</p><button class="btn clay" id="last-mock" type="button">View last result</button>'):''}${Object.keys(P()).some(k=>k.startsWith('mock-history:'))?panel('<h2>Test history</h2>'+Object.entries(P()).filter(([k,v])=>k.startsWith('mock-history:')&&v).sort((a,b)=>b[1].date-a[1].date).slice(0,20).map(([,v])=>'<p>'+esc(new Date(v.date).toLocaleString())+' · '+v.correct+'/'+v.total+' correct · '+v.percent+'%</p>').join('')):''}${panel(`<form id="mock-form"><div class="form-grid"><label>Subject<select name="subject">${SUBJECTS.map(s=>`<option value="${s.slug}">${esc(s.short)}</option>`).join('')}</select></label><label>Questions<input name="count" type="number" value="20" min="1" max="200" required></label><label>Minutes<input name="minutes" type="number" value="25" min="1" max="240" required></label><label>Difficulty<select name="difficulty"><option value="all">Mixed</option><option value="E">Easy</option><option value="M">Medium</option><option value="H">Hard</option></select></label></div><fieldset><legend>Modules</legend><div id="mock-modules" class="check-grid"></div></fieldset><button class="btn ink">Start test</button><p id="mock-message" role="status"></p></form>`)}`);
     $('#last-mock')?.addEventListener('click',()=>mockRun());$('#resume-mock')?.addEventListener('click',()=>mockRun());const form=$('#mock-form');function modules(){const s=SUBJECTS.find(s=>s.slug===form.elements.subject.value);$('#mock-modules').innerHTML=s.modules.filter(m=>m.mcq?.length).map(m=>`<label><input type="checkbox" name="module" value="${m.id}" checked> ${esc(m.title)}</label>`).join('')||'<p>No question packs are available yet.</p>';};form.elements.subject.onchange=modules;modules();form.onsubmit=e=>{e.preventDefault();const data=new FormData(form),mods=new Set(data.getAll('module')),pool=questions().filter(x=>!x.bonus&&x.s.slug===data.get('subject')&&mods.has(x.m.id)&&(data.get('difficulty')==='all'||x.q[7]===data.get('difficulty')));if(!pool.length){$('#mock-message').textContent='Choose a module with available questions.';return;}const seed=crypto.getRandomValues(new Uint32Array(1))[0],selected=StudyCore.shuffle(pool,seed).slice(0,Number(data.get('count')));save('mock',{id:crypto.randomUUID(),seed,questionIds:selected.map(x=>x.id),answers:{},marked:{},cursor:0,startedAt:Date.now(),duration:Number(data.get('minutes'))*60000});mockRun();};}
@@ -339,6 +423,6 @@ window.StudyWorkspace=(()=>{
   }
   async function stats(admin=false){shell(admin?'Admin dashboard':'Study statistics','Only recorded activity is counted. No invented usage numbers.',empty('Loading statistics…'));try{const data=await LearnSkit.rpc(admin?'study_admin_dashboard':'study_public_stats',{});if(!root.isConnected)return;const metrics=data?.metrics||data||{};const safeMetrics=Object.entries(metrics).filter(([,value])=>typeof value==='number');shell(admin?'Admin dashboard':'Study statistics','Aggregate usage from the connected database.',`<div class="tool-grid">${safeMetrics.map(([key,value])=>panel(`<p class="muted">${esc(key.replace(/_/g,' '))}</p><h2>${value.toLocaleString()}</h2>`)).join('')}</div>${admin?panel(`<h2>Content reports</h2>${(data.reports||[]).map(r=>`<article><p><b>${esc(r.item_id)}</b> · ${esc(r.category)}</p><p>${esc(r.details)}</p></article>`).join('')||'<p>No content reports.</p>'}<h2>Registered users</h2>${(data.users||[]).map(u=>`<p>${esc(u.name||u.id)} · ${esc(u.last_active||'No activity yet')}</p>`).join('')}<button class="btn clay" id="export-stats" type="button">Export metrics</button>`):''}`);$('#export-stats')?.addEventListener('click',()=>download('learn-skit-admin-metrics.json',JSON.stringify(data,null,2)));}catch{shell(admin?'Admin dashboard':'Study statistics',admin?'Admin access is checked by the database.':'Your recorded activity on this device.',`${panel(`<p>${admin?'This page needs the connected database and an admin role.':'Aggregate statistics will appear after the database is connected.'}</p>${!admin?`<p>Cards reviewed: ${Object.keys(LearnSkit.state.box).length}</p><p>Questions answered: ${Object.keys(LearnSkit.state.mcq).length}</p>`:''}`)}`);}}
   function legal(kind){const content={privacy:['Privacy','We store your Google account identifier, optional profile details, study progress, saved items, content reports and activity needed to provide revision tools. Google sign-in and cloud data use Supabase. Optional details can be omitted. We do not use advertising trackers, collect raw IP addresses in our application analytics, or request precise location. Functional browser storage keeps your session, preferences and unsynced progress. Downloaded offline content stays on this browser until sign-out or removal. You can export your study data in Settings and request account deletion there once the database is connected. Account-linked analytics are removed or anonymised on deletion. Service providers may maintain their own security logs. Content reports are retained to resolve errors. For a privacy request, use the in-app feedback tool; contact details will be added when the owner configures the production service.'],terms:['Terms','learn-skit is an independent student study aid and is not affiliated with VIT. Predicted questions are estimates based on the supplied material, not a promise of exam coverage or results. Source material can conflict or contain errors; confirm flagged items with your faculty. Do not use this service to cheat in an assessment. Keep your account secure and report content errors. Third-party source material belongs to its respective owners. Content may change as errors are corrected.'],about:['About & content notice','learn-skit organises EVS and Quantitative & Qualitative Skills revision into notes, cards, practice and video. Material is paraphrased from the supplied course decks. Computational checks and AI review are disclosed separately from human or faculty approval. No past exam papers were supplied, so “predicted” describes an evidence-based estimate. If you own material and need a correction or takedown, use the in-app feedback tool and include the item ID and source page.'],methodology:['How questions are chosen','Questions prioritise repeated concepts, formulas, named laws, dates, quantities and patterns that fit a four-option MCQ exam. Source citations identify the supporting pages. Questions are checked for a single defensible answer and plausible distractors; numerical questions use executable checks where available. Difficulty and prediction scores describe the study material, not actual exam probabilities. Source conflicts stay labelled. Automated and AI checks do not constitute faculty approval.']}[kind];shell(content[0],'Updated 17 November 2026',panel(`<div class="legal-copy">${content[1].split('. ').map(p=>`<p>${esc(p)}${p.endsWith('.')?'':'.'}</p>`).join('')}</div><div class="row"><a class="btn clay" href="#/">Home</a><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/about">About</a></div>`));}
-  function render(target,path){stop();root=target;applyTheme();const route=path.split('?')[0];({tools:dashboard,search,cards:cardDeck,bookmarks:showBookmarks,mistakes,mock:mockBuilder,'full-test':()=>fullSyllabusTest(new URLSearchParams(path.split('?')[1]).get('subject')),reference:references,videos:videoLibrary,settings:()=>profileForm(),welcome:()=>profileForm(true),stats:()=>stats(),admin:adminDashboard,privacy:()=>legal('privacy'),terms:()=>legal('terms'),about:()=>legal('about'),methodology:()=>legal('methodology')}[route]||dashboard)();}
+  function render(target,path){stop();root=target;applyTheme();const route=path.split('?')[0];({tools:dashboard,search,cards:cardDeck,bookmarks:showBookmarks,mistakes,mock:mockBuilder,'full-practice':()=>fullSyllabusPractice(new URLSearchParams(path.split('?')[1]).get('subject')),reference:references,videos:videoLibrary,settings:()=>profileForm(),welcome:()=>profileForm(true),stats:()=>stats(),admin:adminDashboard,privacy:()=>legal('privacy'),terms:()=>legal('terms'),about:()=>legal('about'),methodology:()=>legal('methodology')}[route]||dashboard)();}
   return{render,stop,controls,bindControls,report,applyTheme,save,questions,cards,download};
 })();
