@@ -106,7 +106,7 @@ function home() {
     <h1 style="margin-top:calc(var(--u)*14);max-width:calc(var(--u)*385)">${words}</h1>
     <p class="lead">Flashcards, predicted MCQs and six-minute notes, with the answer printed right under each question.</p>
     <div class="row">
-      <a class="btn ink" href="${last ? last.h : '#/s/evs'}">${last ? 'Continue: ' + esc(last.short) : 'Start revising'} ${I.arrow}</a>
+      <a class="btn ink" href="${last ? last.h : '#/s/evs'}"><span>${last ? 'Continue: ' + esc(last.short) : 'Start revising'}</span> ${I.arrow}</a>
       <a class="btn clay" data-tint="powder" href="#how">Peek inside</a>
     </div>
   </div>

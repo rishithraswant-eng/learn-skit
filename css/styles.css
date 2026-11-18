@@ -890,7 +890,12 @@ header.top.is-scrolled{
   .stem{font-size:1.15rem}.face .q{font-size:1.1rem}.tile-p .big{font-size:4rem}
 }
 @media (min-width:700px) and (max-width:1023px){.art{grid-template-columns:repeat(2,minmax(0,1fr))}.tile-t,.tile-p{grid-column:1/-1}.tile-b .opts{grid-template-columns:1fr}}
-@media (max-width:560px){.opts{grid-template-columns:1fr}.tile-t .row .btn{flex:1}}
+@media (max-width:1023px){
+  .tile-t .row .btn{max-width:100%;min-width:0;white-space:normal;padding:12px 22px;line-height:1.4}
+  .tile-t .row .btn span{min-width:0;overflow-wrap:anywhere}
+  .tile-t .row .btn svg{flex-shrink:0}
+}
+@media (max-width:560px){.opts{grid-template-columns:1fr}.tile-t .row .btn{flex:1 1 100%}}
 
 /* Dark mode dashboard tiles & blob cards */
 .dark .art-svg g.t,
