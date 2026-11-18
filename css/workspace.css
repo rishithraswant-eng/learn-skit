@@ -36,7 +36,16 @@
 .reading-note{border-top:1px solid var(--lav-400);padding-top:12px}
 .reading-nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px}
 .reading-nav button{min-height:44px}
-.preview-reading-card{overflow:auto;gap:8px;justify-content:flex-start}
+.preview-reading-card{overflow:visible;gap:8px;justify-content:flex-start}
+/* Let the visible sample determine its height so both sides stay readable. */
+.tile-a .stack{display:block;flex:none;aspect-ratio:auto;padding-bottom:30px;min-height:0}
+.stack .fc{aspect-ratio:auto;border-radius:22px}
+.stack .fc.top{position:relative;margin:0 auto}
+.stack .fc:not(.top){left:7%;top:0;height:calc(100% - 30px);pointer-events:none}
+.stack .fc.top .in,.stack .fc.top .preview-reading-card{position:relative}
+.preview-reading-card p{flex-shrink:0;overflow-wrap:anywhere}
+.tile-b .sol{margin-top:28px;row-gap:16px}
+@media(max-width:1023px){.tile-a{align-self:start}}
 
 /* 3-up Flashcard Carousel: Mobile-First */
 .carousel-viewport{display:grid;grid-template-columns:1fr;align-items:center;gap:16px;position:relative;overflow-x:clip;padding:8px 0;width:100%}
