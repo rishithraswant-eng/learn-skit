@@ -480,7 +480,9 @@ function updateHeader() {
   if (tools) tools.style.display = signedIn ? '' : 'none';
   if (signin) {
     const label = $('span', signin);
-    if (label) label.textContent = signedIn ? 'Sign out' : 'Sign in';
+    const text = signedIn ? 'Sign out' : 'Sign in';
+    if (label) label.textContent = text;
+    signin.setAttribute('aria-label', text);
   }
 }
 
