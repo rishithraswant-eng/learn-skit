@@ -2,6 +2,12 @@
 window.LearnSkit = (() => {
   let client, user, onChange = () => {}, timer, generation = 0;
   let pending = new Map(), saving = null;
+  let syncError = null;
+  // PostgREST turns a top-level JSON null into SQL NULL. The payload column is
+  // NOT NULL, so keep cleared values as an explicit tombstone on the wire.
+  const cloudRow = row => ({ ...row, payload: row.payload ?? { __learn_skit_null: true } });
+  const devicePayload = payload => payload && typeof payload === 'object' &&
+    payload.__learn_skit_null === true && Object.keys(payload).length === 1 ? null : payload;
   const empty = () => ({ box: {}, mcq: {}, position: {}, last: null });
   let state = empty();
   const message = text => { const node = document.querySelector('#toast'); node.textContent = text; node.classList.add('on'); setTimeout(() => node.classList.remove('on'), 5000); };
@@ -24,13 +30,20 @@ window.LearnSkit = (() => {
     const batch = new Map(pending), owner = user.id;
     saving = (async () => {
       try {
-        const { error } = await client.from('study_progress').upsert([...batch.values()], { onConflict: 'user_id,kind,item_id' });
+        const { error } = await client.from('study_progress').upsert([...batch.values()].map(cloudRow), { onConflict: 'user_id,kind,item_id' });
         if (error) throw error;
         if (owner === user?.id) for (const [key, row] of batch) if (pending.get(key) === row) pending.delete(key);
         cache();
-      } catch {
+        if (owner === user?.id) {
+          if (syncError && !pending.size) message('Cloud sync restored. Your saved progress is up to date.');
+          syncError = null;
+        }
+      } catch (error) {
         for (const [key, row] of batch) if (row.user_id === user?.id && !pending.has(key)) pending.set(key, row);
-        message('Progress is saved on this device. Cloud sync will retry when connected.');
+        if (owner === user?.id) {
+          if (!syncError) message('Cloud sync could not save progress. It is saved on this device and will retry.');
+          syncError = { code: String(error?.code || 'NETWORK_ERROR'), status: error?.status || null };
+        }
       } finally { saving = null; if (pending.size && owner === user?.id) { clearTimeout(timer); timer = setTimeout(flush, 10000); } }
     })();
     return saving;
@@ -44,6 +57,7 @@ window.LearnSkit = (() => {
     writeCache();
     clearTimeout(timer); clearContent(); state = empty(); pending = new Map();
     user = session?.user || null;
+    syncError = null;
     if(previousUser&&previousUser!==user?.id&&window.PrivateStudyCache)PrivateStudyCache.remove(previousUser).catch(()=>{});
     onChange('loading');
     if (!user) { onChange('signed-out'); return; }
@@ -77,8 +91,9 @@ window.LearnSkit = (() => {
       }
       // Server progress is authoritative on fresh sign-in. Offline changes stay cached.
       for (const row of progress) {
-        if (row.kind === 'last') state.last = safeLast(row.payload);
-        else if (['box','mcq','position'].includes(row.kind)) state[row.kind][row.item_id] = row.payload;
+        const payload = devicePayload(row.payload);
+        if (row.kind === 'last') state.last = safeLast(payload);
+        else if (['box','mcq','position'].includes(row.kind)) state[row.kind][row.item_id] = payload;
       }
       for (const [,row] of pending) {
         if (row.kind === 'last') state.last = safeLast(row.payload);
@@ -101,6 +116,7 @@ window.LearnSkit = (() => {
     client.auth.onAuthStateChange((event, session) => {
       // Leave the auth callback before awaiting other Supabase calls.
       if (event === 'INITIAL_SESSION' || event === 'SIGNED_OUT' || (event === 'SIGNED_IN' && session?.user.id !== user?.id)) setTimeout(() => load(session), 0);
+      if (event === 'TOKEN_REFRESHED') setTimeout(() => { flush(); retryRpcs(); }, 0);
     });
     const params = new URLSearchParams(location.search);
     if (params.has('error')) { message('Google sign-in was cancelled or failed. Please try again.'); history.replaceState(null, '', location.pathname + location.hash); }
@@ -131,7 +147,7 @@ window.LearnSkit = (() => {
     await load(null);
   }
   addEventListener('online', () => flush());
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { writeCache(); flush(); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) writeCache(); flush(); if (!document.hidden) retryRpcs(); });
   addEventListener('pagehide', () => {
     writeCache();
     if (!client || !user || !pending.size) return;
@@ -139,7 +155,7 @@ window.LearnSkit = (() => {
     client.auth.getSession().then(({data}) => {
       if (!data.session) return;
       fetch(`${window.LEARN_SKIT_CONFIG.supabaseUrl}/rest/v1/study_progress?on_conflict=user_id,kind,item_id`, {
-        method:'POST', keepalive:true, headers:{ apikey:window.LEARN_SKIT_CONFIG.supabaseAnonKey, Authorization:`Bearer ${data.session.access_token}`, 'Content-Type':'application/json', Prefer:'resolution=merge-duplicates' }, body:JSON.stringify([...pending.values()])
+        method:'POST', keepalive:true, headers:{ apikey:window.LEARN_SKIT_CONFIG.supabaseAnonKey, Authorization:`Bearer ${data.session.access_token}`, 'Content-Type':'application/json', Prefer:'resolution=merge-duplicates' }, body:JSON.stringify([...pending.values()].map(cloudRow))
       }).catch(() => {});
     });
   });
@@ -149,5 +165,5 @@ window.LearnSkit = (() => {
   async function retryRpcs(){if(retrying)return;retrying=true;const owner=user?.id;try{for(const [key,value] of Object.entries(state.position))if(key.startsWith('_rpc:')&&value){try{await rpc(value.name,value.args);if(user?.id!==owner)return;delete state.position[key];cache();}catch{break;}}}finally{retrying=false;}}
   addEventListener('online',retryRpcs);
   async function deleteAccount(){await rpc('study_delete_account');const id=user.id;try{localStorage.removeItem(cacheKey(id));}catch{}pending.clear();state=empty();await signOut();}
-  return { start, signIn, signOut, message, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl: path => client.storage.from('study-videos').createSignedUrl(path, 3600), courseUrls: paths => client.storage.from('study-videos').createSignedUrls(paths, 21600), get user() { return user; }, get state() { return state; }, put, flush };
+  return { start, signIn, signOut, message, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl: path => client.storage.from('study-videos').createSignedUrl(path, 3600), courseUrls: paths => client.storage.from('study-videos').createSignedUrls(paths, 21600), get user() { return user; }, get state() { return state; }, get syncStatus() { return { pending: pending.size, error: syncError }; }, put, flush };
 })();

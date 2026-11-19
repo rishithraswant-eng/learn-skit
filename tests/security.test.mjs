@@ -48,7 +48,7 @@ test('private import preserves stable IDs, answer letters, allocations and confl
   assert.equal(rows.filter(r=>r.subject==='evs').reduce((n,r)=>n+r.payload.mcq.length,0),200);
 });
 
-async function harness({configured=true, storage=new Map(), progress=[], failSave=false}={}) {
+async function harness({configured=true, storage=new Map(), progress=[], failSave=false, rejectNull=false}={}) {
   let authCallback, moduleReads=0, writes=[];
   const tasks = new Map(); let nextTimer=0;
   const nodes = new Map();
@@ -58,7 +58,7 @@ async function harness({configured=true, storage=new Map(), progress=[], failSav
     from(table) {
       const chain={select(){return chain;},eq(){return chain;},order(){return chain;},range(){return chain;},
         then(resolve){ if (table==='study_modules') moduleReads++; return Promise.resolve({data:table==='study_modules'?[{subject:'evs',module_id:'M01',payload:{cards:[['Q','A']],mcq:[]}}]:progress,error:null}).then(resolve); },
-        async upsert(rows){writes.push(...rows);return {error:failSave?{message:'offline'}:null};}
+        async upsert(rows){writes.push(...rows);return {error:(typeof failSave==='function'?failSave():failSave)?{message:'offline'}:rejectNull&&rows.some(row=>row.payload==null)?{code:'23502',message:'null payload'}:null};}
       };return chain;
     }
   };
@@ -95,4 +95,40 @@ test('failed writes survive reload and override older server progress',async()=>
 test('cloud resume pointers cannot introduce external URLs or HTML attributes',async()=>{
   const h=await harness({progress:[{kind:'last',item_id:'last',payload:{h:'javascript:alert(1)',label:'unsafe',short:'unsafe'}}]});
   await h.event('alice');assert.equal(h.app.state.last,null);
+});
+
+test('removing a bookmark does not block other progress in the sync batch',async()=>{
+  const h=await harness({rejectNull:true});await h.event('alice');
+  h.app.state.position['bookmark:question']=null;
+  h.app.put('position','bookmark:question',null);
+  h.app.put('box','card',0);
+  await h.app.flush();
+  assert.equal(h.app.syncStatus.pending,0);
+  assert.equal(h.app.syncStatus.error,null);
+  assert.equal(h.writes.find(row=>row.item_id==='card').payload,0);
+  const cleared=h.writes.find(row=>row.item_id==='bookmark:question');
+  const restored=await harness({progress:[cleared]});await restored.event('alice');
+  assert.equal(restored.app.state.position['bookmark:question'],null);
+});
+
+test('previously stuck null and missing payloads recover from the device cache',async()=>{
+  const rows=[{user_id:'alice',kind:'position',item_id:'bookmark:old',payload:null},
+    {user_id:'alice',kind:'position',item_id:'bookmark:missing'},
+    {user_id:'alice',kind:'box',item_id:'card',payload:3}];
+  const storage=new Map([['learn-skit:v2:alice',JSON.stringify({state:{position:{'bookmark:old':null},box:{card:3}},pending:rows.map(row=>[row.kind+':'+row.item_id,row])})]]);
+  const h=await harness({storage,rejectNull:true});await h.event('alice');await h.app.flush();
+  assert.equal(h.app.syncStatus.pending,0);
+  assert.equal(h.writes.length,3);
+  assert.ok(h.writes.every(row=>row.payload!==null&&row.payload!==undefined));
+  assert.equal(h.app.state.box.card,3);
+  assert.equal(h.app.state.position['bookmark:old'],null);
+});
+
+test('a transient write failure keeps progress and clears diagnostics on recovery',async()=>{
+  let offline=true;const h=await harness({failSave:()=>offline});await h.event('alice');
+  h.app.put('mcq','question',{ok:true});await h.app.flush();
+  assert.equal(h.app.syncStatus.pending,1);
+  assert.equal(h.app.syncStatus.error.code,'NETWORK_ERROR');
+  offline=false;await h.app.flush();
+  assert.equal(h.app.syncStatus.pending,0);assert.equal(h.app.syncStatus.error,null);
 });
