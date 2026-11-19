@@ -26,17 +26,77 @@ const SUB = Object.fromEntries(SUBJECTS.map(s => [s.slug, s]));
 const ready = m => !!(m.cards && m.cards.length);
 const cid = (m, i) => m.cardIds?.[i] || `${m.id}-c${i}`, qid = (m, i) => m.questionIds?.[i] || `${m.id}-q${i}`;
 const position = (m, kind, id) => { const key = `${m.id}:${kind}`; S.d.position[key] = id; LearnSkit.put('position', key, id); };
+const isCardDone = (m, i) => {
+  const id = cid(m, i);
+  if (Object.hasOwn(S.d.box, id)) return true;
+  const pos = S.d.position?.[`${m.id}:cards`];
+  if (pos && m.cards) {
+    const lastIdx = m.cards.findIndex((_, idx) => cid(m, idx) === pos);
+    if (lastIdx >= i) {
+      if (!Object.hasOwn(S.d.box, id)) {
+        S.d.box[id] = 0;
+        LearnSkit.put('box', id, 0);
+      }
+      return true;
+    }
+  }
+  return false;
+};
+const isQuestionDone = (m, i) => {
+  const id = qid(m, i);
+  if (S.d.mcq?.[id]) return true;
+  const run = S.d.position?.[`practice-run:${m.id}`];
+  const ans = run?.answers?.[id];
+  if (ans !== undefined && ans !== null) {
+    if (!S.d.mcq[id]) {
+      const selected = typeof ans === 'number' ? ans : ans.selected;
+      const ok = typeof ans === 'object' && ans.ok !== undefined ? ans.ok : selected === m.mcq[i][2];
+      S.d.mcq[id] = { ok, selected, t: Date.now() };
+      LearnSkit.put('mcq', id, S.d.mcq[id]);
+    }
+    return true;
+  }
+  return false;
+};
 const modPct = m => {
   if (!ready(m)) return 0;
-  const tot = m.cards.length + m.mcq.length;
-  const done = m.cards.filter((_, i) => Object.hasOwn(S.d.box,cid(m, i))).length + m.mcq.filter((_, i) => S.d.mcq[qid(m, i)]).length;
-  return Math.round(done / tot * 100);
+  const numCards = m.cards?.length || 0;
+  const numMcq = m.mcq?.length || 0;
+  if (!numCards && !numMcq) return 0;
+  const doneCards = numCards ? m.cards.filter((_, i) => isCardDone(m, i)).length : 0;
+  const doneMcq = numMcq ? m.mcq.filter((_, i) => isQuestionDone(m, i)).length : 0;
+  if (numCards > 0 && numMcq > 0) {
+    return Math.min(100, Math.round((doneCards / numCards) * 50 + (doneMcq / numMcq) * 50));
+  }
+  if (numCards > 0) {
+    return Math.min(100, Math.round((doneCards / numCards) * 100));
+  }
+  return Math.min(100, Math.round((doneMcq / numMcq) * 100));
 };
 const allPct = () => {
-  let t = 0, d = 0;
-  SUBJECTS.forEach(s => s.modules.filter(ready).forEach(m => { t += m.cards.length + m.mcq.length; d += modPct(m) * (m.cards.length + m.mcq.length) / 100; }));
-  return t ? Math.round(d / t * 100) : 0;
+  const readyMods = SUBJECTS.flatMap(s => s.modules.filter(ready));
+  if (!readyMods.length) return 0;
+  let totalCards = 0, doneCards = 0, totalMcq = 0, doneMcq = 0;
+  for (const m of readyMods) {
+    const numCards = m.cards?.length || 0;
+    const numMcq = m.mcq?.length || 0;
+    totalCards += numCards;
+    doneCards += numCards ? m.cards.filter((_, i) => isCardDone(m, i)).length : 0;
+    totalMcq += numMcq;
+    doneMcq += numMcq ? m.mcq.filter((_, i) => isQuestionDone(m, i)).length : 0;
+  }
+  if (totalCards > 0 && totalMcq > 0) {
+    return Math.min(100, Math.round((doneCards / totalCards) * 50 + (doneMcq / totalMcq) * 50));
+  }
+  if (totalCards > 0) {
+    return Math.min(100, Math.round((doneCards / totalCards) * 100));
+  }
+  if (totalMcq > 0) {
+    return Math.min(100, Math.round((doneMcq / totalMcq) * 100));
+  }
+  return 0;
 };
+window.StudyProgress = { modPct, allPct, isCardDone, isQuestionDone };
 const tintVars = s => ({ peach: '--accent:var(--peach);--accent-ink:var(--peach-deep);--accent-bg:var(--g-clay-peach)', powder: '--accent:var(--blue);--accent-ink:var(--blue-deep);--accent-bg:var(--g-clay-blue)', lav: '--accent:var(--lav-deep);--accent-ink:var(--lav-deep);--accent-bg:var(--g-clay-lav)' }[s.tint]);
 const ring = (p, inner = `<b>${p}%</b>`) => `<div class="ring" style="--p:${p}">${inner}</div>`;
 
@@ -335,6 +395,13 @@ function cardSession(m,s,root) {
     const [prompt, answer, note] = deck[index];
     const id = cid(m,index);
     position(m,'cards',id);
+    for (let i = 0; i <= index; i++) {
+      const cardId = cid(m, i);
+      if (!Object.hasOwn(S.d.box, cardId)) {
+        S.d.box[cardId] = 0;
+        LearnSkit.put('box', cardId, 0);
+      }
+    }
     const left = index > 0 ? deck[index - 1] : null;
     const right = index < deck.length - 1 ? deck[index + 1] : null;
     root.innerHTML = `<div class="session">
