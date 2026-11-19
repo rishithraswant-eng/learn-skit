@@ -42,6 +42,10 @@ test('private import preserves stable IDs, answer letters, allocations and confl
       assert.equal(row.payload.mcq[i][1][row.payload.mcq[i][2]],q.options[q.answer]);
       assert.equal(row.payload.mcq[i][8],!!q.verify_with_faculty);
       assert.ok(['E','M','H'].includes(row.payload.mcq[i][7]), 'difficulty must match the player contract');
+      if(q.context_in_question){
+        assert.ok(q.context && q.question.includes(q.context),'self-contained questions must include their scenario');
+        assert.equal(row.payload.questionMeta[i].group,null,'do not repeat an embedded scenario in a separate box');
+      }
     });
   }
   assert.equal(rows.filter(r=>r.subject==='evs').length,17);
