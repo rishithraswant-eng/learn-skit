@@ -1045,6 +1045,7 @@ header.top.is-scrolled{
 .sec-h p{max-width:46ch;color:var(--ink-700)}
 .creator-credit{margin-top:24px;padding:16px 20px;border-radius:18px;background:var(--lav-50);color:var(--ink-700);font-size:.9rem}
 .creator-credit p{margin-bottom:6px;font-weight:700}
+.creator-credit .roommate-credit{margin:12px 0 0;font-weight:400}
 .creator-credit ul{display:flex;flex-wrap:wrap;gap:4px 24px;list-style:none;margin:0;padding:0}
 .subjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
 .subj{padding:26px;border-radius:32px;text-decoration:none;display:flex;flex-direction:column;gap:14px;min-height:300px}

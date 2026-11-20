@@ -211,6 +211,7 @@ function home() {
       <li>RISHITH RASWANT</li>
       <li>TUSHAAR BHARARA</li>
     </ul>
+    <p class="roommate-credit">Thanks to our roommate: Shaunak Kulkarni</p>
   </aside>
 </section>`;
   initFlashDemo(); initMcqDemo(); countUp($('#count'), 200);
