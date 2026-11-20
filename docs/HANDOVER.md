@@ -4,7 +4,7 @@
 
 **Creators:** RISHITH RASWANT and TUSHAAR BHARARA. The credit is on the signed-in homepage beneath “How a session feels”.
 
-Use this file as the current handover. [PRD.md](../PRD.md) is the original ClayPrep specification. The private decisions log records decisions through the earlier build, and the private local milestone report describes the earlier local-only milestone. Their references to separate predicted/bonus pages, an unconnected backend or local-only combined video describe earlier states.
+Use this file as the current handover. [PRD.md](../PRD.md) is the original ClayPrep specification. [DECISIONS.md](DECISIONS.md) records decisions through the earlier build, and [RESUME_STATUS.md](RESUME_STATUS.md) describes the earlier local-only milestone. Their references to separate predicted/bonus pages, an unconnected backend or local-only combined video describe earlier states.
 
 - [What students can do](#what-students-can-do)
 - [What changed from the PRD](#what-changed-from-the-prd)
@@ -72,7 +72,7 @@ The owner created the Google Cloud project and configured Google and Supabase us
 | Audience and scope | External audience was the instructed setup. Use basic identity scopes 'openid', email and profile. Wider API scopes are unnecessary. Verify publishing status in Google before a public rollout. |
 | OAuth client | Web application, suggested display name 'learn-skit web'. The browser uses Supabase OAuth. |
 | Google authorised JavaScript origin | `http://127.0.0.1:4173` for local preview. Add the public HTTPS origin when known. |
-| Google authorised redirect URI | `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`. Verify the exact value in Supabase's Google provider panel when migrating projects. |
+| Google authorised redirect URI | `https://bvbwukdbwnoyopxrwtrk.supabase.co/auth/v1/callback`. Verify the exact value in Supabase's Google provider panel when migrating projects. |
 | Supabase Google provider | **Authentication → Sign In / Providers → Google**. Enable Google, enter the OAuth client ID and client secret and leave the provider security checks enabled. |
 | Supabase application return settings | **Authentication → URL Configuration**. Local Site URL `http://127.0.0.1:4173/` and Redirect URL `http://127.0.0.1:4173/**`. For production, use the real HTTPS site URL and its return address. |
 
@@ -82,7 +82,7 @@ For screen-by-screen setup or a new project, see [SETUP_SUPABASE_GOOGLE.md](SETU
 
 ## Supabase and data access
 
-**Project URL format:** `https://YOUR_PROJECT_REF.supabase.co`. The owner supplied the URL and keys and reported completing the dashboard steps. Local configuration was added, then the 37 content rows and media were uploaded to that project. Supabase plan, region, production return URLs and admin grant state require confirmation in the dashboard.
+**Project ref:** 'bvbwukdbwnoyopxrwtrk'. **Project URL:** `https://bvbwukdbwnoyopxrwtrk.supabase.co`. The owner supplied the URL and keys and reported completing the dashboard steps. Local configuration was added, then the 37 content rows and media were uploaded to that project. Supabase plan, region, production return URLs and admin grant state require confirmation in the dashboard.
 
 ### Local environment and admin provisioning
 
@@ -93,7 +93,7 @@ Copy [.env.example](../.env.example) to '.env.local' on a new checkout and popul
 | `SUPABASE_URL` | Build and administrator scripts. |
 | `SUPABASE_PUBLISHABLE_KEY` | Browser client. The build writes it under the legacy property name 'supabaseAnonKey' in `dist/js/config.js`. |
 | `SUPABASE_SECRET_KEY` | Local import and upload scripts. It has elevated access. Keep it out of the browser, handover, hosted build variables and source control. |
-| `ADMIN_EMAILS` | Local SQL generation. Use the admin address from the private owner handover. |
+| `ADMIN_EMAILS` | Local SQL generation. The supplied admin account is 'rishithraswant@gmail.com'. |
 | `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` | Legacy aliases supported by the relevant scripts. Prefer the publishable and secret key names above. |
 | `SUPABASE_DB_URL` | Optional legacy configuration. SQL Editor setup needs no database URL. |
 
@@ -130,8 +130,8 @@ Apply these migrations in order on a **fresh** project. On the existing project,
 | Qualitative and soft skills | 10 | 106 | 80 | 15 | 10 |
 | **Total** | **37** | **726** | **400** | **80** | **20 skills notes plus EVS cheat sheets** |
 
-- EVS source PDF is `EVSCat2_merged (1).pdf`. Read the private EVS content specification. Text extraction, author packs, stable ID maps, built packs and verification reports are in 'evs-cat2-content/'.
-- Skills source PDF is `merged_presentation_choladeck (1).pdf`. Read the private Skills content specification. Extracted/OCR material is under `study-content/source/`, packs under `study-content/modules/` and QA under `study-content/reports/`. Both question adapters preserve answers and IDs when publishing options. Preserve IDs across edits to protect saved attempts, bookmarks and resume.
+- EVS source PDF is `EVSCat2_merged (1).pdf`. Read [EVS_CAT2_CONTENT_SPEC.md](../EVS_CAT2_CONTENT_SPEC.md). Text extraction, author packs, stable ID maps, built packs and verification reports are in 'evs-cat2-content/'.
+- Skills source PDF is `merged_presentation_choladeck (1).pdf`. Read [STUDY_CONTENT_SPEC.md](../STUDY_CONTENT_SPEC.md). Extracted/OCR material is under `study-content/source/`, packs under `study-content/modules/` and QA under `study-content/reports/`. Both question adapters preserve answers and IDs when publishing options. Preserve IDs across edits to protect saved attempts, bookmarks and resume.
 - EVS M03, M04, M09 and M11 were completed after the earlier handoff. All 17 EVS modules and 20 Skills modules passed content validation. The earlier M15 assertion/reason was rewritten using source page 368, where warmer water holds less dissolved oxygen and the temperature rise stresses aquatic life.
 - The final EVS answer-key comparisons agreed on 240/240. Skills verification included 95 qualitative cold solves, 64 independently calculated numerical items and executable checks for all 145 numerical questions. These are machine/AI checks. Human or faculty sign-off is separate.
 - Conflicting source values remain disclosed where applicable. Examples include fresh-water percentages, Namami Gange 2014/2015 and the M01 waste figure, along with other source flags in the QA and content. Review source evidence before modifying a marked answer. The coverage and answer-key reports describe the checks actually performed.
@@ -181,7 +181,7 @@ The course uploader accepts pace arguments, for example `node scripts/upload-cou
 
 ## Build, preview and deploy
 
-Use Node.js 24, which is the CI version used for the current project, and Python 3.12 for authoring and browser checks. On the original Windows machine Python is at 'C:/Users/YOUR_USER/AppData/Local/Programs/Python/Python312/python.exe'. Python/Chrome/Playwright/FFmpeg are only needed for authoring, media and browser checks. npm installs HLS.js and the PGlite test dependency.
+Use Node.js 24, which is the CI version used for the current project, and Python 3.12 for authoring and browser checks. On the original Windows machine Python is at 'C:/Users/Rishith Raswant/AppData/Local/Programs/Python/Python312/python.exe'. Python/Chrome/Playwright/FFmpeg are only needed for authoring, media and browser checks. npm installs HLS.js and the PGlite test dependency.
 
 ~~~powershell
 npm ci
@@ -240,3 +240,21 @@ This folder had no Git repository at handover. If moving to version control, kee
 | Admin tile missing | Confirm the intended account signed in and the generated role-bootstrap SQL was run against the correct project. |
 | Another preview is already open | Reuse the existing server listening at port 4173. |
 | Need to reproduce media | Retain the private narration cache and authoritative source packs. Verify module renders, assemble the course, package it, upload it and rebuild as applicable. |
+
+## 20 November 2026 — Private video delivery moved to Cloudflare R2
+
+Production media provider is now R2. Vercel continues to host the website and the protected signing endpoint; Supabase continues to provide Google authentication, course records, student progress, attempts and reports. The private R2 bucket is `learn-skit`, not `learn-skit-videos`.
+
+Uploaded and verified 487 published objects (743,052,117 bytes): 102 lesson/caption files and 385 complete-course playlist, initialization, video-segment and caption files. Existing object paths were preserved. Source videos were uploaded locally, avoiding an additional Supabase download. All Supabase media copies remain intact for rollback.
+
+The browser calls POST `/api/media-urls` with its Supabase access token. The server validates the user through Supabase Auth, restricts requested object paths and batch size, and returns six-hour signed GET URLs. Media bytes travel directly from private R2 storage to the browser. The signing API sends no-store responses; R2 public access remains disabled. The site CSP permits the R2 origin and video elements use anonymous cross-origin mode for captions. R2 CORS allows GET/HEAD from production and local preview, with Range and response-range headers.
+
+Server-only Vercel variables: `R2_MEDIA_ENABLED=true`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`. Upload-only local variables: `R2_UPLOAD_ACCESS_KEY_ID`, `R2_UPLOAD_SECRET_ACCESS_KEY`. Credential values are excluded from Git, browser bundles and documentation. A separate bucket-scoped read-only token is recommended for playback when credentials are next replaced; the existing token was changed to Object Read & Write to complete migration. The API itself only signs GET requests.
+
+Reupload command: `node scripts/upload-r2-videos.mjs`. Uploads are idempotent by SHA-256 metadata and content length, and the ignored `private-build/r2-upload-report.json` records verification. The private media and test artifacts remain excluded from Git. `scripts/local-env.mjs` supports digits in variable names, including R2.
+
+Validation completed: 29 automated tests pass; the source-only checkout passes 28 with one expected private-content skip. Live production API denies guests and invalid sessions (401), denies invalid paths (400), and signs valid student requests (200). Actual production Chrome playback and seeking passed for a lesson and combined-course stream. All three course paces passed playlist, first/last segment, caption and CORS checks. Observed zero Supabase Storage media requests in the production player check. An isolated temporary diagnostic account was removed after testing. Native Safari/iOS was not physically tested: the Windows Playwright WebKit media runtime rejected both a known standard MP4 and the lesson fixture, so no Safari decode pass is claimed.
+
+Local preview also supports the protected signing route. After changing local media settings, rebuild and restart preview. Rollback: set Vercel `R2_MEDIA_ENABLED=false` and redeploy; that selects the retained Supabase media provider. No database migration or student-progress changes are required.
+
+This migration stops new video downloads from consuming Supabase Storage egress on refreshed clients. It does not erase quota already used, and already-open old tabs may keep using previously issued Supabase URLs until refreshed.
