@@ -1424,6 +1424,14 @@ let activeSince=Date.now();
 let lastInteraction=Date.now();['pointerdown','keydown','scroll'].forEach(type=>addEventListener(type,()=>lastInteraction=Date.now(),{passive:true}));
 setInterval(()=>{const now=Date.now();if(LearnSkit.user&&!LearnSkit.localProgress&&!document.hidden&&now-lastInteraction<60000){const seconds=Math.min(30,Math.round((now-activeSince)/1000));if(seconds>0)LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'active_time',p_details:{seconds}});LearnSkit.retryRpcs();}activeSince=now;},30000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&LearnSkit.user&&!LearnSkit.localProgress){const seconds=Math.min(300,Math.round((Date.now()-activeSince)/1000));if(seconds>0)LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'active_time',p_details:{seconds}});}else activeSince=Date.now();});
+// Keep anchor targets below the notice and navigation when phone text wraps.
+const siteHeader=document.querySelector('header.top');
+if(siteHeader){
+  const measureHeader=()=>document.documentElement.style.setProperty('--live-header-height',Math.ceil(siteHeader.getBoundingClientRect().height+12)+'px');
+  measureHeader();
+  if(window.ResizeObserver)new ResizeObserver(measureHeader).observe(siteHeader);
+  else addEventListener('resize',measureHeader,{passive:true});
+}
 addEventListener('hashchange', route);
 route();
 LearnSkit.start(status => {

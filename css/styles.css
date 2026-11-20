@@ -317,6 +317,15 @@ button.clay:active,a.clay:active,.clay[data-pressed="true"],.press:active{transf
 @media (prefers-reduced-transparency:reduce),(prefers-contrast:more){.glass{background:var(--surface);backdrop-filter:none}}
 
 /* header */
+.service-notice{display:flex;justify-content:center;align-items:center;gap:9px;padding:10px max(16px,env(safe-area-inset-left));background:var(--bg-tint-peach);color:var(--text);border-bottom:1px solid var(--border-subtle);font-size:.8rem;line-height:1.5;text-align:center}
+.service-notice svg{flex:none;color:var(--accent-ink)}
+.service-notice p{margin:0;max-width:70ch}
+.service-notice strong{font-weight:800}
+.dark .service-notice,[data-theme="dark"] .service-notice{background:#242529;color:#F2F0E9}
+.dark .service-notice svg,[data-theme="dark"] .service-notice svg{color:#FFC928}
+html{scroll-padding-top:var(--live-header-height,160px)}
+@media(max-width:480px){.service-notice{font-size:.75rem;gap:8px;padding-block:8px}}
+@media print{.service-notice{display:none}}
 header.top{
   position:sticky;
   top:0;
@@ -623,10 +632,10 @@ header.top.is-scrolled{
 /* Laptop and Desktop Layout (md: and up - min-width: 768px) */
 @media (min-width: 768px){
   header.top{
-    height:4rem;
+    height:auto;
   }
   .top-inner{
-    height:100%;
+    min-height:4rem;
     padding:0 1.5rem;
     gap:16px;
     flex-wrap:nowrap;

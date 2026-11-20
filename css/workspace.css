@@ -19,7 +19,7 @@
   .opt .st{font-size:.8rem}
   .reading-nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:var(--surface-raised);padding-bottom:max(12px,env(safe-area-inset-bottom))}
   .reading-nav .btn{flex:1 1 40%;white-space:normal}
-  .note section{scroll-margin-top:var(--study-header-height)}
+  .note section{scroll-margin-top:var(--live-header-height,var(--study-header-height))}
   .note code{max-width:100%;overflow-wrap:anywhere;word-break:break-word;box-sizing:border-box}
   .note pre{max-width:100%;overflow:auto}
   video{max-width:100%;height:auto;aspect-ratio:16/9;background:#14221c}
