@@ -274,3 +274,7 @@ Tests include no retained progress after reload, no cloud progress reads/writes,
 ### Backend guard for already-open old tabs
 
 `supabase/pause-revision-tracking.sql` is prepared and tested with PostgreSQL/PGlite. It installs BEFORE INSERT/UPDATE triggers that return NULL for `study_progress`, `study_attempts` and `study_events`, preserving existing records while suppressing writes from old client versions. It has been sent to the owner for application in SQL Editor; do not assume it is applied until the owner confirms or live verification succeeds. This does not eliminate HTTP gateway logs from obsolete browsers, but avoids their database writes and retry errors. The client update stops new-version requests entirely. Existing consumed egress and log-ingestion totals cannot be reset by this change.
+
+### Owner confirmed backend pause applied
+
+The owner reported that `supabase/pause-revision-tracking.sql` ran successfully. Its SQL behavior was verified locally with PGlite. Direct production PostgREST/Auth checks were still timing out at that point, so live backend suppression has not yet been independently confirmed. The deployed client was independently verified in Chrome and WebKit to make zero progress/attempt/activity writes and retain no progress after reload.
