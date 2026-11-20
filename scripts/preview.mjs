@@ -2,6 +2,10 @@ import http from 'node:http';
 import {readFile, stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {makeMediaHandler} from '../lib/r2-media.mjs';
+import {localEnv} from './local-env.mjs';
+
+const mediaHandler=makeMediaHandler({env:{...await localEnv().catch(()=>({})),...process.env}});
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 const types = {
@@ -22,6 +26,14 @@ http.createServer(async (req, res) => {
   try {
     const parsedUrl = new URL(req.url, 'http://localhost');
     let pathname = decodeURIComponent(parsedUrl.pathname);
+    if(pathname==='/api/media-urls'){
+      let body='';
+      for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>65536){res.writeHead(413).end();return;}}
+      req.body=body;
+      res.status=code=>{res.statusCode=code;return res;};
+      res.json=value=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));return res;};
+      return await mediaHandler(req,res);
+    }
 
     // Support rewrite of /opengraph-image to /opengraph-image.png
     if (pathname === '/opengraph-image') {
