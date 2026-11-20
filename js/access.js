@@ -3,6 +3,9 @@ window.LearnSkit = (() => {
   let client, user, onChange = () => {}, timer, generation = 0;
   let pending = new Map(), saving = null;
   let syncError = null;
+  const progressOff=()=>window.LEARN_SKIT_CONFIG?.progressMode==='off';
+  const localOnly=()=>progressOff()||window.LEARN_SKIT_CONFIG?.progressMode==='local';
+  const passiveRpc=name=>name==='study_attempt'||name==='study_event';
   // PostgREST turns a top-level JSON null into SQL NULL. The payload column is
   // NOT NULL, so keep cleared values as an explicit tombstone on the wire.
   const cloudRow = row => ({ ...row, payload: row.payload ?? { __learn_skit_null: true } });
@@ -13,7 +16,7 @@ window.LearnSkit = (() => {
   const message = text => { const node = document.querySelector('#toast'); node.textContent = text; node.classList.add('on'); setTimeout(() => node.classList.remove('on'), 5000); };
   const cacheKey = id => `learn-skit:v2:${id}`;
   const safeLast = value => value && /^#\/s\/[\w-]+\/[\w-]+\/(?:cards|practice|notes|video)$/.test(value.h) && typeof value.label === 'string' && typeof value.short === 'string' ? { h:value.h, label:value.label, short:value.short } : null;
-  const writeCache = () => { if (user) try { localStorage.setItem(cacheKey(user.id), JSON.stringify({ state, pending: [...pending] })); } catch {} };
+  const writeCache = () => { if (user&&!progressOff()) try { localStorage.setItem(cacheKey(user.id), JSON.stringify({ state, pending: [...pending] })); } catch {} };
   let cacheQueued = false;
   function cache() {
     if (!user || cacheQueued) return;
@@ -22,10 +25,16 @@ window.LearnSkit = (() => {
   }
   function put(kind, item_id, payload) {
     if (!user) return;
+    if(localOnly()){
+      if(kind==='last')state.last=safeLast(payload);
+      else if(['box','mcq','position'].includes(kind))state[kind][item_id]=payload;
+      cache();return;
+    }
     pending.set(`${kind}:${item_id}`, { user_id: user.id, kind, item_id, payload });
     cache(); clearTimeout(timer); timer = setTimeout(flush, 1500);
   }
   async function flush() {
+    if(localOnly()){clearTimeout(timer);syncError=null;writeCache();return;}
     if (saving || !user || !pending.size) return saving;
     const batch = new Map(pending), owner = user.id;
     saving = (async () => {
@@ -64,13 +73,22 @@ window.LearnSkit = (() => {
     const id = user.id;
     // Separate cache per account; legacy guest data is deliberately never merged.
     try {
-      const stored = JSON.parse(localStorage.getItem(cacheKey(id)));
+      const stored = progressOff()?null:JSON.parse(localStorage.getItem(cacheKey(id)));
       if (stored?.state) state = { ...empty(), ...stored.state };
       state.last = safeLast(state.last);
       pending = new Map((stored?.pending || []).filter(([,row]) => row.user_id === id));
     } catch {}
+    if(localOnly()){
+      for(const [,row] of pending){
+        if(row.kind==='last')state.last=safeLast(row.payload);
+        else if(['box','mcq','position'].includes(row.kind))state[row.kind][row.item_id]=row.payload;
+      }
+      pending.clear();
+      for(const [key,value] of Object.entries(state.position))if(key.startsWith('_rpc:')&&passiveRpc(value?.name))delete state.position[key];
+      cache();
+    }
     try {
-      const progressRequest = (async () => {
+      const progressRequest = localOnly()?Promise.resolve([]):(async () => {
         const rows = [];
         for (let offset = 0; ; offset += 1000) {
           const page = await client.from('study_progress').select('kind,item_id,payload').eq('user_id', id).order('kind').order('item_id').range(offset, offset + 999);
@@ -80,7 +98,7 @@ window.LearnSkit = (() => {
         }
       })();
       const [{data: modules, error}, progress] = await Promise.all([
-        client.from('study_modules').select('subject,module_id,payload'), progressRequest
+        studyModules(), progressRequest
       ]);
       if (error) throw error;
       if (ticket !== generation) return;
@@ -102,8 +120,8 @@ window.LearnSkit = (() => {
       cache(); onChange('ready');
       flush();
     } catch {
-      if(ticket===generation&&window.PrivateStudyCache&&navigator.onLine===false){
-        try{const cached=await PrivateStudyCache.read(id);if(cached?.modules&&ticket===generation){for(const row of cached.modules){const m=window.SUBJECTS.find(s=>s.slug===row.subject||s.sourceSlugs?.includes(row.subject))?.modules.find(m=>m.id===row.module_id);if(m)Object.assign(m,row.payload);}onChange('ready');message('Offline: using study material saved for this account.');return;}}catch{}
+      if(ticket===generation&&window.PrivateStudyCache){
+        try{const cached=await PrivateStudyCache.read(id);if(cached?.modules&&ticket===generation){for(const row of cached.modules){const m=window.SUBJECTS.find(s=>s.slug===row.subject||s.sourceSlugs?.includes(row.subject))?.modules.find(m=>m.id===row.module_id);if(m)Object.assign(m,row.payload);}onChange('ready');message('Using study material saved for this account.');return;}}catch{}
       }
       if (ticket === generation) { clearContent(); onChange('error'); }
     }
@@ -150,6 +168,7 @@ window.LearnSkit = (() => {
   document.addEventListener('visibilitychange', () => { if (document.hidden) writeCache(); flush(); if (!document.hidden) retryRpcs(); });
   addEventListener('pagehide', () => {
     writeCache();
+    if(localOnly())return;
     if (!client || !user || !pending.size) return;
     // keepalive supports the Authorization header required by RLS.
     client.auth.getSession().then(({data}) => {
@@ -159,7 +178,7 @@ window.LearnSkit = (() => {
       }).catch(() => {});
     });
   });
-  async function rpc(name,args={}) { if(!client||!user)throw Error('Sign in required');const {data,error}=await client.rpc(name,args);if(error)throw error;return data; }
+  async function rpc(name,args={}) { if(!client||!user)throw Error('Sign in required');if(localOnly()&&passiveRpc(name))return null;const {data,error}=await client.rpc(name,args);if(error)throw error;return data; }
   async function mediaUrls(paths) {
     if (!client || !user) return {data:null,error:{message:'Sign in required'}};
     const owner=user.id;
@@ -176,6 +195,16 @@ window.LearnSkit = (() => {
       return {data:result.data,error:null};
     } catch(error) { return {data:null,error:{message:error.message}}; }
   }
+  async function studyModules() {
+    if(window.LEARN_SKIT_CONFIG.contentProvider!=='r2')return client.from('study_modules').select('subject,module_id,payload');
+    const {data,error}=await mediaUrls(['study-content/modules.json']);
+    if(error||!data?.[0]?.signedUrl)throw Error('Study material is unavailable');
+    const response=await fetch(data[0].signedUrl);
+    if(!response.ok)throw Error('Study material is unavailable');
+    const rows=await response.json();
+    if(!Array.isArray(rows)||!rows.length||rows.some(row=>!row.subject||!row.module_id||!row.payload||typeof row.payload!=='object'))throw Error('Invalid study material');
+    return {data:rows,error:null};
+  }
   async function videoUrl(path) {
     if(window.LEARN_SKIT_CONFIG.mediaProvider!=='r2')return client.storage.from('study-videos').createSignedUrl(path,3600);
     const {data,error}=await mediaUrls([path]);return {data:data?.[0]||null,error};
@@ -183,10 +212,10 @@ window.LearnSkit = (() => {
   function courseUrls(paths) {
     return window.LEARN_SKIT_CONFIG.mediaProvider==='r2'?mediaUrls(paths):client.storage.from('study-videos').createSignedUrls(paths,21600);
   }
-  async function queueRpc(name,args) { const owner=user?.id,id=args.p_id||crypto.randomUUID(),key='_rpc:'+id;if(!owner)return;state.position[key]={name,args};cache();try{await rpc(name,args);if(user?.id===owner){delete state.position[key];cache();}}catch{} }
+  async function queueRpc(name,args) { if(localOnly()&&passiveRpc(name))return;const owner=user?.id,id=args.p_id||crypto.randomUUID(),key='_rpc:'+id;if(!owner)return;state.position[key]={name,args};cache();try{await rpc(name,args);if(user?.id===owner){delete state.position[key];cache();}}catch{} }
   let retrying=false;
-  async function retryRpcs(){if(retrying)return;retrying=true;const owner=user?.id;try{for(const [key,value] of Object.entries(state.position))if(key.startsWith('_rpc:')&&value){try{await rpc(value.name,value.args);if(user?.id!==owner)return;delete state.position[key];cache();}catch{break;}}}finally{retrying=false;}}
+  async function retryRpcs(){if(retrying)return;retrying=true;const owner=user?.id;try{for(const [key,value] of Object.entries(state.position))if(key.startsWith('_rpc:')&&value){if(localOnly()&&passiveRpc(value.name)){delete state.position[key];cache();continue;}try{await rpc(value.name,value.args);if(user?.id!==owner)return;delete state.position[key];cache();}catch{break;}}}finally{retrying=false;}}
   addEventListener('online',retryRpcs);
   async function deleteAccount(){await rpc('study_delete_account');const id=user.id;try{localStorage.removeItem(cacheKey(id));}catch{}pending.clear();state=empty();await signOut();}
-  return { start, signIn, signOut, message, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl, courseUrls, get user() { return user; }, get state() { return state; }, get syncStatus() { return { pending: pending.size, error: syncError }; }, put, flush };
+  return { start, signIn, signOut, message, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl, courseUrls, get user() { return user; }, get state() { return state; }, get progressDisabled() {return progressOff();}, get localProgress() {return localOnly();}, get syncStatus() { return { pending: pending.size, error: syncError }; }, put, flush };
 })();

@@ -346,7 +346,7 @@ function session(slug, mid, kind) {
   S.d.last = { h: location.hash, label: `${m.title} (${kind})`, short: m.title.split(/[:(]/)[0].trim().slice(0, 26) }; LearnSkit.put('last', 'last', S.d.last);
   const head = (title, sub) => `<div class="page-head"><div><a class="crumb" href="#/s/${slug}">${I.back} ${esc(s.title)}</a><h1>${esc(title)}</h1><p>${esc(sub)}</p></div>
     <div class="seg glass" role="group" aria-label="Mode">${[['cards', 'Cards'], ['practice', 'Practice'], ['notes', m.note ? 'Notes' : 'Cheat sheet'], ...(m.videos ? [['video','Video']] : [])].map(([k, l]) => `<button type="button" data-k="${k}" aria-pressed="${k === kind}">${l}</button>`).join('')}</div></div>`;
-  view.innerHTML = `<div class="wrap view-in" style="${tintVars(s)}">${head(m.title, `${m.id} · ${{ cards: 'Read the prompt and answer together.', practice: 'Pick an answer, then open the solution layer you need.', notes: m.note ? 'What is taught, in six minutes.' : 'Every starred fact for this module on one page.', video:'Chalkboard revision with Neerja. Playback position is saved.' }[kind]}`)}<div id="sess"></div></div>`;
+  view.innerHTML = `<div class="wrap view-in" style="${tintVars(s)}">${head(m.title, `${m.id} · ${{ cards: 'Read the prompt and answer together.', practice: 'Pick an answer, then open the solution layer you need.', notes: m.note ? 'What is taught, in six minutes.' : 'Every starred fact for this module on one page.', video:'Chalkboard revision with Neerja.' }[kind]}`)}<div id="sess"></div></div>`;
   $$('.page-head .seg button').forEach(b => b.addEventListener('click', () => location.hash = `#/s/${slug}/${mid}/${b.dataset.k}`));
   setNav(slug);
   ({ cards: cardSession, practice: mcqSession, notes: notes, video: videoSession })[kind](m, s, $('#sess'));
@@ -1411,17 +1411,25 @@ function route() {
 
 document.addEventListener('click', e => { const a = e.target.closest('a[href="#how"]'); if (a && $('#how')) { e.preventDefault(); $('#how').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); } });
 addEventListener('beforeinstallprompt',event=>{event.preventDefault();window.installPrompt=event;});
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',async()=>{
+  try{
+    const registration=await navigator.serviceWorker.register('./sw.js');
+    const update=()=>{if(navigator.onLine!==false)registration.update().catch(()=>{});};
+    addEventListener('online',update);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)update();});
+    setInterval(()=>{if(!document.hidden)update();},300000);
+  }catch{}
+});
 let activeSince=Date.now();
 let lastInteraction=Date.now();['pointerdown','keydown','scroll'].forEach(type=>addEventListener(type,()=>lastInteraction=Date.now(),{passive:true}));
-setInterval(()=>{const now=Date.now();if(LearnSkit.user&&!document.hidden&&now-lastInteraction<60000){const seconds=Math.min(30,Math.round((now-activeSince)/1000));if(seconds>0)LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'active_time',p_details:{seconds}});LearnSkit.retryRpcs();}activeSince=now;},30000);
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&LearnSkit.user){const seconds=Math.min(300,Math.round((Date.now()-activeSince)/1000));if(seconds>0)LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'active_time',p_details:{seconds}});}else activeSince=Date.now();});
+setInterval(()=>{const now=Date.now();if(LearnSkit.user&&!LearnSkit.localProgress&&!document.hidden&&now-lastInteraction<60000){const seconds=Math.min(30,Math.round((now-activeSince)/1000));if(seconds>0)LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'active_time',p_details:{seconds}});LearnSkit.retryRpcs();}activeSince=now;},30000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&LearnSkit.user&&!LearnSkit.localProgress){const seconds=Math.min(300,Math.round((Date.now()-activeSince)/1000));if(seconds>0)LearnSkit.queueRpc('study_event',{p_id:crypto.randomUUID(),p_type:'active_time',p_details:{seconds}});}else activeSince=Date.now();});
 addEventListener('hashchange', route);
 route();
 LearnSkit.start(status => {
   accessStatus = status;
   updateHeader();
-  if(status==='ready'){StudyWorkspace.applyTheme();LearnSkit.retryRpcs();if(!S.d.position.profile?.onboarding_done&&!/^#\/(privacy|terms|about)/.test(location.hash)){location.hash='#/welcome';}}
+  if(status==='ready'){StudyWorkspace.applyTheme();LearnSkit.retryRpcs();if(!LearnSkit.progressDisabled&&!S.d.position.profile?.onboarding_done&&!/^#\/(privacy|terms|about)/.test(location.hash)){location.hash='#/welcome';}}
   route();
 });
 })();

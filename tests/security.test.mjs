@@ -52,30 +52,63 @@ test('private import preserves stable IDs, answer letters, allocations and confl
   assert.equal(rows.filter(r=>r.subject==='evs').reduce((n,r)=>n+r.payload.mcq.length,0),200);
 });
 
-async function harness({configured=true, storage=new Map(), progress=[], failSave=false, rejectNull=false}={}) {
-  let authCallback, moduleReads=0, writes=[];
+async function harness({configured=true, storage=new Map(), progress=[], failSave=false, rejectNull=false,contentProvider='supabase',failR2=false,progressMode='cloud'}={}) {
+  let authCallback, moduleReads=0,progressReads=0,writes=[],rpcCalls=[],sessionUser;
   const tasks = new Map(); let nextTimer=0;
   const nodes = new Map();
   const subject = {slug:'evs',modules:[{id:'M01'}]};
   const client = {
-    auth:{onAuthStateChange(fn){authCallback=fn;},getSession:async()=>({data:{session:null}}),signOut:async()=>({error:null}),signInWithOAuth:async()=>({error:null})},
+    rpc:async(name,args)=>{rpcCalls.push({name,args});return {data:null,error:null};},
+    auth:{onAuthStateChange(fn){authCallback=fn;},getSession:async()=>({data:{session:sessionUser?{user:{id:sessionUser},access_token:'test-session'}:null}}),signOut:async()=>({error:null}),signInWithOAuth:async()=>({error:null})},
     from(table) {
       const chain={select(){return chain;},eq(){return chain;},order(){return chain;},range(){return chain;},
-        then(resolve){ if (table==='study_modules') moduleReads++; return Promise.resolve({data:table==='study_modules'?[{subject:'evs',module_id:'M01',payload:{cards:[['Q','A']],mcq:[]}}]:progress,error:null}).then(resolve); },
+        then(resolve){ if (table==='study_modules') moduleReads++;if(table==='study_progress')progressReads++; return Promise.resolve({data:table==='study_modules'?[{subject:'evs',module_id:'M01',payload:{cards:[['Q','A']],mcq:[]}}]:progress,error:null}).then(resolve); },
         async upsert(rows){writes.push(...rows);return {error:(typeof failSave==='function'?failSave():failSave)?{message:'offline'}:rejectNull&&rows.some(row=>row.payload==null)?{code:'23502',message:'null payload'}:null};}
       };return chain;
     }
   };
-  const window={SUBJECTS:[subject],LEARN_SKIT_CONFIG:configured?{supabaseUrl:'https://example.supabase.co',supabaseAnonKey:'anon'}:{},supabase:{createClient:()=>client}};
+  const window={SUBJECTS:[subject],LEARN_SKIT_CONFIG:configured?{supabaseUrl:'https://example.supabase.co',supabaseAnonKey:'anon',contentProvider,progressMode}:{},supabase:{createClient:()=>client}};
   const context={window,document:{querySelector(id){if(!nodes.has(id))nodes.set(id,{textContent:'',classList:{add(){},remove(){}}});return nodes.get(id);},addEventListener(){}},
     localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
     setTimeout:(fn,delay)=>{const id=++nextTimer;tasks.set(id,{fn,delay});return id;},clearTimeout:id=>tasks.delete(id),
-    addEventListener(){},URL,URLSearchParams,location:{origin:'https://site.example',pathname:'/',hash:'#/',search:''},history:{replaceState(){}},fetch:async()=>({ok:true})};
+    addEventListener(){},URL,URLSearchParams,location:{origin:'https://site.example',pathname:'/',hash:'#/',search:''},history:{replaceState(){}},fetch:async url=>({ok:!failR2,json:async()=>url==='/api/media-urls'?{data:[{path:'study-content/modules.json',signedUrl:'https://media.example/course.json'}]}:[{subject:'evs',module_id:'M01',payload:{cards:[['R2 question','R2 answer']],mcq:[]}}]})};
   vm.runInNewContext(await read('js/access.js'),context);
   const app=window.LearnSkit,status=[];await app.start(s=>status.push(s));
-  const event=async(userId)=>{authCallback(userId?'SIGNED_IN':'SIGNED_OUT',userId?{user:{id:userId}}:null);for(const [id,t] of tasks)if(t.delay===0){tasks.delete(id);await t.fn();}};
-  return {app,status,event,storage,subject,get reads(){return moduleReads;},get writes(){return writes;}};
+  const event=async(userId)=>{sessionUser=userId;authCallback(userId?'SIGNED_IN':'SIGNED_OUT',userId?{user:{id:userId}}:null);for(const [id,t] of tasks)if(t.delay===0){tasks.delete(id);await t.fn();}};
+  return {app,status,event,storage,subject,get reads(){return moduleReads;},get progressReads(){return progressReads;},get writes(){return writes;},get rpcCalls(){return rpcCalls;}};
 }
+
+test('device-only mode retains answers across reload with zero progress reads or writes',async()=>{
+ const storage=new Map();let h=await harness({progressMode:'local',storage});await h.event('alice');
+ h.app.put('mcq','question',{selected:2,ok:true});h.app.put('position','last-module',{cursor:7});await h.app.flush();
+ assert.equal(h.progressReads,0);assert.equal(h.writes.length,0);
+ h=await harness({progressMode:'local',storage});await h.event('alice');
+ assert.equal(h.app.state.mcq.question.selected,2);assert.equal(h.app.state.position['last-module'].cursor,7);assert.equal(h.progressReads,0);
+ await h.event('bob');assert.equal(h.app.state.mcq.question,undefined);
+});
+
+test('device-only mode stops attempt and activity RPCs while preserving explicit reports',async()=>{
+ const h=await harness({progressMode:'local'});await h.event('alice');
+ await h.app.queueRpc('study_attempt',{p_id:'attempt'});await h.app.queueRpc('study_event',{p_id:'event'});await h.app.rpc('study_event',{});
+ assert.equal(h.rpcCalls.length,0);await h.app.queueRpc('study_report',{p_id:'report'});assert.equal(h.rpcCalls.length,1);assert.equal(h.rpcCalls[0].name,'study_report');
+});
+
+test('device-only migration preserves queued answers and does not replay old analytics',async()=>{
+ const storage=new Map([['learn-skit:v2:alice',JSON.stringify({state:{position:{'_rpc:old':{name:'study_attempt',args:{p_id:'old'}}}},pending:[['mcq:question',{user_id:'alice',kind:'mcq',item_id:'question',payload:{ok:true,selected:1}}]]})]]);
+ const h=await harness({progressMode:'local',storage});await h.event('alice');await h.app.retryRpcs();await h.app.flush();
+ assert.equal(h.app.state.mcq.question.selected,1);assert.equal(h.app.state.position['_rpc:old'],undefined);assert.equal(h.writes.length,0);assert.equal(h.rpcCalls.length,0);assert.equal(h.app.syncStatus.pending,0);
+});
+
+test('progress-off mode uses memory only and starts fresh on reload',async()=>{
+ const storage=new Map([['learn-skit:v2:alice',JSON.stringify({state:{mcq:{old:{selected:1}},position:{oldVideo:120}},pending:[]})]]);
+ const original=storage.get('learn-skit:v2:alice');let h=await harness({progressMode:'off',storage});await h.event('alice');
+ assert.equal(h.app.state.mcq.old,undefined);assert.equal(h.app.state.position.oldVideo,undefined);
+ h.app.put('mcq','question',{selected:2,ok:true});h.app.put('position','video',60);await h.app.flush();
+ assert.equal(h.app.state.mcq.question.selected,2);assert.equal(h.app.state.position.video,60);
+ assert.equal(h.writes.length,0);assert.equal(h.progressReads,0);assert.equal(storage.get('learn-skit:v2:alice'),original);
+ await h.app.queueRpc('study_attempt',{p_id:'attempt'});await h.app.queueRpc('study_event',{p_id:'event'});assert.equal(h.rpcCalls.length,0);
+ h=await harness({progressMode:'off',storage});await h.event('alice');assert.equal(h.app.state.mcq.question,undefined);assert.equal(h.app.state.position.video,undefined);
+});
 
 test('missing configuration fails closed and never fetches content',async()=>{
   const h=await harness({configured:false});assert.equal(h.status.at(-1),'unconfigured');assert.equal(h.reads,0);assert.equal(h.subject.modules[0].cards,undefined);
@@ -83,6 +116,17 @@ test('missing configuration fails closed and never fetches content',async()=>{
 test('content is loaded only for a session and removed on sign-out',async()=>{
   const h=await harness();assert.equal(h.reads,0);await h.event('alice');assert.equal(h.status.at(-1),'ready');assert.equal(h.subject.modules[0].cards.length,1);
   await h.event(null);assert.equal(h.subject.modules[0].cards,undefined);assert.equal(h.app.state.last,null);
+});
+
+test('R2 study delivery keeps sign-in gating and avoids Supabase module reads',async()=>{
+  const h=await harness({contentProvider:'r2'});assert.equal(h.reads,0);await h.event('alice');
+  assert.equal(h.status.at(-1),'ready');assert.equal(h.reads,0);assert.equal(h.subject.modules[0].cards[0][0],'R2 question');
+  await h.event(null);assert.equal(h.subject.modules[0].cards,undefined);
+});
+
+test('R2 study delivery failures do not silently resume bulk Supabase downloads',async()=>{
+  const h=await harness({contentProvider:'r2',failR2:true});await h.event('alice');
+  assert.equal(h.status.at(-1),'error');assert.equal(h.reads,0);assert.equal(h.subject.modules[0].cards,undefined);
 });
 test('account switch does not expose another user progress or guest cache',async()=>{
   const storage=new Map([['clayprep:v1',JSON.stringify({box:{guest:5}})]]);

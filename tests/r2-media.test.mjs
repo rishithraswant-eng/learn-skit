@@ -21,6 +21,12 @@ test('media API fails closed during auth outages and before rollout',async()=>{
  const down=makeMediaHandler({env,fetcher:async()=>{throw Error('private upstream details');}});assert.equal((await call(down)).code,503);
  const disabled=makeMediaHandler({env:{...env,R2_MEDIA_ENABLED:'false'}});assert.equal((await call(disabled)).code,503);
 });
+test('private course bundle requires explicit rollout and an authenticated student',async()=>{
+ const off=makeMediaHandler({env});assert.equal((await call(off,{body:{paths:['study-content/modules.json']}})).code,503);
+ const on=makeMediaHandler({env:{...env,R2_CONTENT_ENABLED:'true'},fetcher:async()=>({status:200,ok:true,json:async()=>({id:'student'})}),signer:async path=>'https://media.example/'+path});
+ assert.equal((await call(on,{token:null,body:{paths:['study-content/modules.json']}})).code,401);
+ assert.equal((await call(on,{body:{paths:['study-content/modules.json']}})).code,200);
+});
 test('S3 playback URLs permit only GET for six hours without exposing the secret',async()=>{
  const secret='test-only-secret-not-a-live-key';const sign=mediaSigner({R2_ENDPOINT:'https://test-account.r2.cloudflarestorage.com',R2_BUCKET_NAME:'learn-skit',R2_ACCESS_KEY_ID:'test-access',R2_SECRET_ACCESS_KEY:secret});
  const url=new URL(await sign('course/full/init.mp4'));assert.equal(url.searchParams.get('X-Amz-Expires'),'21600');assert.equal(url.searchParams.get('X-Amz-Algorithm'),'AWS4-HMAC-SHA256');assert.ok(!url.href.includes(secret));assert.ok(url.pathname.endsWith('/course/full/init.mp4'));assert.ok(url.hostname.startsWith('learn-skit.')||url.pathname.startsWith('/learn-skit/'));

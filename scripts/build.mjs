@@ -69,7 +69,7 @@ for (const subject of subjects) {
   }
 }
 let env = {};
-try { for (const line of (await read('.env.local')).split(/\r?\n/)) { const match = line.match(/^([A-Z_]+)\s*=\s*(.*)$/); if (match) env[match[1]] = match[2].replace(/^(['"])(.*)\1$/, '$2'); } } catch (e) { if (e.code !== 'ENOENT') throw e; }
+try { for (const line of (await read('.env.local')).split(/\r?\n/)) { const match = line.match(/^([A-Z0-9_]+)\s*=\s*(.*)$/); if (match) env[match[1]] = match[2].replace(/^(['"])(.*)\1$/, '$2'); } } catch (e) { if (e.code !== 'ENOENT') throw e; }
 const url = process.env.SUPABASE_URL || env.SUPABASE_URL || '';
 const key = process.env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_SITE_URL || 'https://learn-skit.vercel.app';
@@ -82,7 +82,7 @@ await mkdir(path.join(root, 'private-build'), { recursive: true });
 await writeFile(path.join(root, 'private-build/content.json'), JSON.stringify(rows, null, 2));
 await writeFile(path.join(root, 'private-build/status.json'), JSON.stringify(status, null, 2));
 await writeFile(path.join(root, 'js/data.js'), `// Public catalogue only. Study content is fetched after authentication.\nwindow.BRAND = ${JSON.stringify(brand)};\nwindow.SUBJECTS = ${JSON.stringify(subjects, null, 2)};\n`);
-await writeFile(path.join(root, 'js/config.js'), `window.LEARN_SKIT_CONFIG = ${JSON.stringify({supabaseUrl: url, supabaseAnonKey: key, mediaProvider:(process.env.R2_MEDIA_ENABLED||env.R2_MEDIA_ENABLED)==='true'?'r2':'supabase'})};\n`);
+await writeFile(path.join(root, 'js/config.js'), `window.LEARN_SKIT_CONFIG = ${JSON.stringify({supabaseUrl: url, supabaseAnonKey: key, mediaProvider:(process.env.R2_MEDIA_ENABLED||env.R2_MEDIA_ENABLED)==='true'?'r2':'supabase',contentProvider:(process.env.R2_CONTENT_ENABLED||env.R2_CONTENT_ENABLED)==='true'?'r2':'supabase',progressMode:process.env.PROGRESS_MODE||env.PROGRESS_MODE||'off'})};\n`);
 
 const publicFiles = [
   'index.html',
@@ -181,6 +181,6 @@ shellHash.update(await read('js/compat.js'));
 const hlsBundle = 'node_modules/hls.js/dist/hls.min.js';
 await copyFile(path.join(root, hlsBundle), path.join(root, 'dist/js/vendor/hls.js'));
 shellHash.update(await read(hlsBundle));
-await writeFile(path.join(root,'dist/sw.js'),(await read('sw.js')).replace('__BUILD_VERSION__',shellHash.digest('hex').slice(0,16)));
+await writeFile(path.join(root,'dist/sw.js'),(await read('sw.js')).replace('__BUILD_VERSION__',shellHash.digest('hex').slice(0,16)).replace('__R2_CONTENT_ENABLED__',(process.env.R2_CONTENT_ENABLED||env.R2_CONTENT_ENABLED)==='true'&&(process.env.AUTO_DELIVERY_UPDATE||env.AUTO_DELIVERY_UPDATE)==='true'?'true':'false'));
 console.log(`Built dist: ${rows.filter(r=>r.subject==='evs').length}/17 EVS + ${rows.filter(r=>r.subject==='skills-1').length}/20 skills modules; ${rows.reduce((n,r)=>n+r.payload.cards.length,0)} cards; ${rows.reduce((n,r)=>n+r.payload.mcq.length,0)} core + ${rows.reduce((n,r)=>n+r.payload.bonus.length,0)} bonus MCQs.`);
 console.log(url && key ? 'Supabase public configuration included.' : 'Supabase keys are missing: site remains locked until configured.');
