@@ -278,3 +278,7 @@ Tests include no retained progress after reload, no cloud progress reads/writes,
 ### Owner confirmed backend pause applied
 
 The owner reported that `supabase/pause-revision-tracking.sql` ran successfully. Its SQL behavior was verified locally with PGlite. Direct production PostgREST/Auth checks were still timing out at that point, so live backend suppression has not yet been independently confirmed. The deployed client was independently verified in Chrome and WebKit to make zero progress/attempt/activity writes and retain no progress after reload.
+
+### Recovery and identity preservation
+
+Auth and PostgREST resumed responding on 20 November: Auth health 200, authenticated signing 200, Auth account listing 200 and exact profile/module count requests 206. A temporary diagnostic account authenticated and was removed afterward. Both old Supabase media buckets list zero objects. The registration trigger remains outside the tracking pause; a regression test confirms new profile creation and sign-in timestamp updates still work. Registered-user counts remain available; activity-based metrics are historical while event logging is paused. See LOW-USAGE-OPERATIONS.md and the read-only account-health-check.sql. The owner approved reopening the site after a collaborator's maintenance-only deployment was discovered.
