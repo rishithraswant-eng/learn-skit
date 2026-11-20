@@ -358,7 +358,7 @@ async function videoSession(m, s, root, profile = S.d.position[`${m.id}:video-pr
   if (!profiles.length) { root.innerHTML = '<div class="panel"><p>Video is still in production.</p></div>'; return; }
   if (!profiles.includes(profile)) profile = profiles[0];
   position(m, 'video-profile', profile);
-  root.innerHTML = `<div class="panel"><div class="row">${profiles.map(p => `<button type="button" class="btn sm clay" data-profile="${p}" aria-pressed="${p === profile}">${{full:'Full',sprint:'Sprint',blitz:'Blitz'}[p]}</button>`).join('')}</div><p class="muted" id="video-status">Opening video…</p><video controls playsinline preload="metadata" style="display:block;width:100%;margin-top:20px;border-radius:16px" aria-label="${esc(m.title)} chalkboard lesson"></video></div>`;
+  root.innerHTML = `<div class="panel"><div class="row">${profiles.map(p => `<button type="button" class="btn sm clay" data-profile="${p}" aria-pressed="${p === profile}">${{full:'Full',sprint:'Sprint',blitz:'Blitz'}[p]}</button>`).join('')}</div><p class="muted" id="video-status">Opening video…</p><video controls playsinline crossorigin="anonymous" preload="metadata" style="display:block;width:100%;margin-top:20px;border-radius:16px" aria-label="${esc(m.title)} chalkboard lesson"></video></div>`;
   $$('[data-profile]',root).forEach(b => b.addEventListener('click',()=>videoSession(m,s,root,b.dataset.profile)));
   const player = $('video',root), status = $('#video-status',root), owner = LearnSkit.user?.id;
   try {

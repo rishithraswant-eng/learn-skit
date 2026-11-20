@@ -245,7 +245,7 @@ window.StudyWorkspace=(()=>{
         <label>Speed<select id="library-speed">${[.75,1,1.25,1.5,1.75,2].map(n => `<option value="${n}">${n}×</option>`).join('')}</select></label>
       </div>
       <p role="status" id="library-status"></p>
-      <video id="library-player" controls playsinline preload="metadata" aria-label="EVS video player" style="width:100%;border-radius:18px"></video>
+      <video id="library-player" controls playsinline crossorigin="anonymous" preload="metadata" aria-label="EVS video player" style="width:100%;border-radius:18px"></video>
       <div class="row" id="library-lesson-nav">
         <button class="btn clay" id="library-prev" type="button">Previous lesson</button>
         <button class="btn ink" id="library-next" type="button">Next lesson</button>

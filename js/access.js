@@ -160,10 +160,33 @@ window.LearnSkit = (() => {
     });
   });
   async function rpc(name,args={}) { if(!client||!user)throw Error('Sign in required');const {data,error}=await client.rpc(name,args);if(error)throw error;return data; }
+  async function mediaUrls(paths) {
+    if (!client || !user) return {data:null,error:{message:'Sign in required'}};
+    const owner=user.id;
+    try {
+      const {data,error}=await client.auth.getSession();
+      if(error || !data.session?.access_token)throw Error('Sign in required');
+      const response=await fetch('/api/media-urls',{
+        method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},
+        body:JSON.stringify({paths})
+      });
+      if(!response.ok)throw Error(response.status===401?'Sign in again to watch videos':'Video service unavailable');
+      const result=await response.json();
+      if(user?.id!==owner)throw Error('Account changed');
+      return {data:result.data,error:null};
+    } catch(error) { return {data:null,error:{message:error.message}}; }
+  }
+  async function videoUrl(path) {
+    if(window.LEARN_SKIT_CONFIG.mediaProvider!=='r2')return client.storage.from('study-videos').createSignedUrl(path,3600);
+    const {data,error}=await mediaUrls([path]);return {data:data?.[0]||null,error};
+  }
+  function courseUrls(paths) {
+    return window.LEARN_SKIT_CONFIG.mediaProvider==='r2'?mediaUrls(paths):client.storage.from('study-videos').createSignedUrls(paths,21600);
+  }
   async function queueRpc(name,args) { const owner=user?.id,id=args.p_id||crypto.randomUUID(),key='_rpc:'+id;if(!owner)return;state.position[key]={name,args};cache();try{await rpc(name,args);if(user?.id===owner){delete state.position[key];cache();}}catch{} }
   let retrying=false;
   async function retryRpcs(){if(retrying)return;retrying=true;const owner=user?.id;try{for(const [key,value] of Object.entries(state.position))if(key.startsWith('_rpc:')&&value){try{await rpc(value.name,value.args);if(user?.id!==owner)return;delete state.position[key];cache();}catch{break;}}}finally{retrying=false;}}
   addEventListener('online',retryRpcs);
   async function deleteAccount(){await rpc('study_delete_account');const id=user.id;try{localStorage.removeItem(cacheKey(id));}catch{}pending.clear();state=empty();await signOut();}
-  return { start, signIn, signOut, message, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl: path => client.storage.from('study-videos').createSignedUrl(path, 3600), courseUrls: paths => client.storage.from('study-videos').createSignedUrls(paths, 21600), get user() { return user; }, get state() { return state; }, get syncStatus() { return { pending: pending.size, error: syncError }; }, put, flush };
+  return { start, signIn, signOut, message, rpc,queueRpc,retryRpcs,deleteAccount, retry: () => client.auth.getSession().then(({data}) => load(data.session)), videoUrl, courseUrls, get user() { return user; }, get state() { return state; }, get syncStatus() { return { pending: pending.size, error: syncError }; }, put, flush };
 })();

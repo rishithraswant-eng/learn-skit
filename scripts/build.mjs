@@ -82,7 +82,7 @@ await mkdir(path.join(root, 'private-build'), { recursive: true });
 await writeFile(path.join(root, 'private-build/content.json'), JSON.stringify(rows, null, 2));
 await writeFile(path.join(root, 'private-build/status.json'), JSON.stringify(status, null, 2));
 await writeFile(path.join(root, 'js/data.js'), `// Public catalogue only. Study content is fetched after authentication.\nwindow.BRAND = ${JSON.stringify(brand)};\nwindow.SUBJECTS = ${JSON.stringify(subjects, null, 2)};\n`);
-await writeFile(path.join(root, 'js/config.js'), `window.LEARN_SKIT_CONFIG = ${JSON.stringify({supabaseUrl: url, supabaseAnonKey: key})};\n`);
+await writeFile(path.join(root, 'js/config.js'), `window.LEARN_SKIT_CONFIG = ${JSON.stringify({supabaseUrl: url, supabaseAnonKey: key, mediaProvider:(process.env.R2_MEDIA_ENABLED||env.R2_MEDIA_ENABLED)==='true'?'r2':'supabase'})};\n`);
 
 const publicFiles = [
   'index.html',
