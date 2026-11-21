@@ -1389,7 +1389,9 @@ function route() {
   if (nextTarget && (h === '#/' || h === '#' || h.startsWith('#/?'))) {
     const cleanUrl = location.pathname + (nextTarget.startsWith('#') ? nextTarget : '#' + nextTarget);
     history.replaceState(null, '', cleanUrl);
-    location.replace(nextTarget.startsWith('#') ? nextTarget : '#' + nextTarget);
+    // replaceState already changed the hash, so replacing that same URL does
+    // not emit hashchange. Render explicitly to finish loading the saved link.
+    route();
     return;
   }
 
