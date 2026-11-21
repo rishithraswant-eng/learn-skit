@@ -101,6 +101,7 @@ window.LearnSkit = (() => {
         studyModules(), progressRequest
       ]);
       if (error) throw error;
+      if(!Array.isArray(modules)||!modules.length)throw Error('Study material is unavailable');
       if (ticket !== generation) return;
       if(window.PrivateStudyCache)PrivateStudyCache.save(id,modules).catch(()=>{});
       for (const row of modules) {
@@ -121,7 +122,7 @@ window.LearnSkit = (() => {
       flush();
     } catch {
       if(ticket===generation&&window.PrivateStudyCache){
-        try{const cached=await PrivateStudyCache.read(id);if(cached?.modules&&ticket===generation){for(const row of cached.modules){const m=window.SUBJECTS.find(s=>s.slug===row.subject||s.sourceSlugs?.includes(row.subject))?.modules.find(m=>m.id===row.module_id);if(m)Object.assign(m,row.payload);}onChange('ready');message('Using study material saved for this account.');return;}}catch{}
+        try{const cached=await PrivateStudyCache.read(id);if(Array.isArray(cached?.modules)&&cached.modules.length&&ticket===generation){for(const row of cached.modules){const m=window.SUBJECTS.find(s=>s.slug===row.subject||s.sourceSlugs?.includes(row.subject))?.modules.find(m=>m.id===row.module_id);if(m)Object.assign(m,row.payload);}onChange('ready');message('Using study material saved for this account.');return;}}catch{}
       }
       if (ticket === generation) { clearContent(); onChange('error'); }
     }

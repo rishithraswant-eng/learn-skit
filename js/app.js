@@ -1370,6 +1370,17 @@ function route() {
     return;
   }
 
+  // A session can be valid while the private content service is unavailable.
+  if(accessStatus==='loading'){
+    view.innerHTML='<div class="wrap workspace"><section class="panel done" role="status"><h1>Loading your study material</h1><p>Please wait a moment.</p></section></div>';
+    return;
+  }
+  if(accessStatus==='error'){
+    view.innerHTML='<div class="wrap workspace"><section class="panel done"><h1>Study material is temporarily unavailable</h1><p>Your sign-in is working, but we couldn’t load the study material. Please try again shortly.</p><button class="btn ink" type="button" id="retry-study-load">Try again</button></section></div>';
+    $('#retry-study-load').onclick=()=>LearnSkit.retry().catch(()=>LearnSkit.message('Could not reconnect. Please try again shortly.'));
+    return;
+  }
+
   // AUTH GUARD: When signed in
   // Check for saved ?next= redirect
   const searchParams = new URLSearchParams(location.search);

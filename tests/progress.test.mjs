@@ -72,7 +72,7 @@ async function createAppContext(initialState = {}) {
     classList: { add: () => {}, remove: () => {}, toggle: () => {} }
   });
   const doc = {
-    querySelector: () => mockEl(),
+    querySelector: selector => selector === 'header.top' ? null : mockEl(),
     querySelectorAll: () => [],
     addEventListener: () => {}
   };

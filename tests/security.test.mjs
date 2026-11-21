@@ -52,7 +52,7 @@ test('private import preserves stable IDs, answer letters, allocations and confl
   assert.equal(rows.filter(r=>r.subject==='evs').reduce((n,r)=>n+r.payload.mcq.length,0),200);
 });
 
-async function harness({configured=true, storage=new Map(), progress=[], failSave=false, rejectNull=false,contentProvider='supabase',failR2=false,progressMode='cloud'}={}) {
+async function harness({configured=true, storage=new Map(), progress=[], failSave=false, rejectNull=false,contentProvider='supabase',failR2=false,progressMode='cloud',cachedModules}={}) {
   let authCallback, moduleReads=0,progressReads=0,writes=[],rpcCalls=[],sessionUser;
   const tasks = new Map(); let nextTimer=0;
   const nodes = new Map();
@@ -72,6 +72,7 @@ async function harness({configured=true, storage=new Map(), progress=[], failSav
     localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
     setTimeout:(fn,delay)=>{const id=++nextTimer;tasks.set(id,{fn,delay});return id;},clearTimeout:id=>tasks.delete(id),
     addEventListener(){},URL,URLSearchParams,location:{origin:'https://site.example',pathname:'/',hash:'#/',search:''},history:{replaceState(){}},fetch:async url=>({ok:!failR2,json:async()=>url==='/api/media-urls'?{data:[{path:'study-content/modules.json',signedUrl:'https://media.example/course.json'}]}:[{subject:'evs',module_id:'M01',payload:{cards:[['R2 question','R2 answer']],mcq:[]}}]})};
+  if(cachedModules!==undefined){const cache={read:async()=>({modules:cachedModules}),save:async()=>{},remove:async()=>{}};window.PrivateStudyCache=cache;context.PrivateStudyCache=cache;}
   vm.runInNewContext(await read('js/access.js'),context);
   const app=window.LearnSkit,status=[];await app.start(s=>status.push(s));
   const event=async(userId)=>{sessionUser=userId;authCallback(userId?'SIGNED_IN':'SIGNED_OUT',userId?{user:{id:userId}}:null);for(const [id,t] of tasks)if(t.delay===0){tasks.delete(id);await t.fn();}};
@@ -127,6 +128,16 @@ test('R2 study delivery keeps sign-in gating and avoids Supabase module reads',a
 test('R2 study delivery failures do not silently resume bulk Supabase downloads',async()=>{
   const h=await harness({contentProvider:'r2',failR2:true});await h.event('alice');
   assert.equal(h.status.at(-1),'error');assert.equal(h.reads,0);assert.equal(h.subject.modules[0].cards,undefined);
+});
+
+test('an empty private cache cannot turn a delivery outage into empty ready modules',async()=>{
+ const h=await harness({contentProvider:'r2',failR2:true,cachedModules:[]});await h.event('alice');
+ assert.equal(h.status.at(-1),'error');assert.equal(h.reads,0);assert.equal(h.subject.modules[0].cards,undefined);
+});
+
+test('a delivery outage can still use the signed-in account material cache',async()=>{
+ const h=await harness({contentProvider:'r2',failR2:true,cachedModules:[{subject:'evs',module_id:'M01',payload:{cards:[['Saved question','Saved answer']]}}]});await h.event('alice');
+ assert.equal(h.status.at(-1),'ready');assert.equal(h.reads,0);assert.equal(h.subject.modules[0].cards[0][0],'Saved question');
 });
 test('account switch does not expose another user progress or guest cache',async()=>{
   const storage=new Map([['clayprep:v1',JSON.stringify({box:{guest:5}})]]);
